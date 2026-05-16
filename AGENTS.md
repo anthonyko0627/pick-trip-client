@@ -55,6 +55,7 @@ Pick Trip Client는 경상도 소도시(하동, 영주, 예천) 중심의 여행
 | title | path |
 | --- | --- |
 | 코드 규칙 | `.agents/rules/code-convention.md` |
+| 파일 구조 규칙 | `.agents/rules/file-structure.md` |
 | 테스트 규칙 | `.agents/rules/test-convention.md` |
 | Git 규칙 | `.agents/rules/git-convention.md` |
 | 브랜치 포커스 | `.agents/rules/branch-focus.md` |
@@ -73,20 +74,39 @@ bun run build
 
 ```text
 src/
-└── app/
-    ├── globals.css
-    ├── layout.tsx
-    └── page.tsx
+├── app/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   ├── globals.css
+│   ├── contents/
+│   │   ├── page.tsx
+│   │   ├── loading.tsx
+│   │   └── _components/
+│   ├── itinerary/
+│   │   ├── page.tsx
+│   │   └── _components/
+│   └── share/
+│       └── [id]/
+│           └── page.tsx
+├── components/
+│   ├── ui/
+│   └── layout/
+├── hooks/
+├── services/
+├── types/
+└── lib/
 ```
 
-현재 저장소는 초기 App Router 구조다. 기능이 늘어날 때는 다음 원칙으로 확장한다.
+현재 저장소는 초기 App Router 구조다. 기능이 늘어날 때는 `.agents/rules/file-structure.md`의 권장 구조를 기준으로 확장한다.
 
 - `src/app`은 라우팅과 route-level UI를 중심으로 둔다.
 - 여러 라우트에서 공유하는 UI는 `src/components`에 둔다.
-- 서버 API 호출, fetch wrapper, 타입 변환은 `src/services` 또는 `src/lib/api`에 둔다.
+- 서버 API 호출, fetch wrapper, 타입 변환은 `src/services`에 둔다.
 - 도메인 타입은 `src/types`에 둔다.
 - 클라이언트 훅은 `src/hooks`에 둔다.
 - 라우트 내부 전용 컴포넌트는 해당 라우트의 `_components` 폴더에 둔다.
+- 공통 유틸과 오류 정규화는 `src/lib`에 둔다.
+- 특정 도메인이 충분히 커지기 전까지는 `src/features`를 먼저 만들지 않는다.
 
 # Next.js 16 Gotchas
 
