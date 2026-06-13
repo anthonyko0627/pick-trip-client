@@ -1,15 +1,24 @@
 # 테스트 규칙
 
-현재 저장소에는 별도 테스트 러너가 설정되어 있지 않다. 테스트 도구를 추가하기 전까지는 `bun run lint`와 `bun run build`를 기본 검증 게이트로 사용한다.
+저장소는 Vitest를 단위/컴포넌트 테스트 러너로 사용한다. DOM 환경(jsdom)과 React Testing Library, `@testing-library/jest-dom` 매처가 설정되어 있다. 테스트 파일은 검증 대상 소스 옆에 `*.test.ts`, `*.test.tsx` 형식으로 둔다.
 
 ## 기본 검증
 
 ```bash
 bun run lint
 bun run build
+bun run test
 ```
 
-PR 제출 전 두 명령어를 모두 실행한다.
+PR 제출 전 세 명령어를 모두 실행한다.
+
+## 테스트 실행
+
+```bash
+bun run test          # 1회 실행
+bun run test:watch    # watch 모드
+bun run test:coverage # 커버리지 측정
+```
 
 ## 테스트 도구 추가 기준
 
