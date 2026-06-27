@@ -66,7 +66,9 @@ describe("BasketPanel", () => {
   it("담긴 콘텐츠 수를 헤더에 표시한다", () => {
     const items = [makeItem("1", "쌍계사"), makeItem("2", "화개장터")];
     render(<BasketPanel items={items} {...defaultProps} />);
-    expect(screen.getByText(/2/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /여행 바구니 2개/ }),
+    ).toBeInTheDocument();
   });
 
   it("각 항목에 3개 우선순위 버튼을 렌더한다", () => {
