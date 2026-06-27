@@ -1,0 +1,110 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import { useBasket } from "@/hooks/useBasket";
+import type { Content, ContentCategory } from "@/types/content";
+
+import { BasketDrawer } from "./BasketDrawer";
+import { BasketFab } from "./BasketFab";
+import { BasketPanel } from "./BasketPanel";
+import { ContentCard } from "./ContentCard";
+import { ContentFilter } from "./ContentFilter";
+
+interface ContentGridProps {
+  initialContents: Content[];
+  itineraryHref: string;
+}
+
+export function ContentGrid({
+  initialContents,
+  itineraryHref,
+}: ContentGridProps) {
+  const [selectedCategories, setSelectedCategories] = useState<
+    ContentCategory[]
+  >([]);
+  const [keyword, setKeyword] = useState("");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { items, add, remove, isInBasket, setPriority, clear } = useBasket();
+  const router = useRouter();
+
+  const filtered = initialContents.filter((c) => {
+    const matchCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(c.category);
+    const q = keyword.trim().toLowerCase();
+    const matchKeyword =
+      q === "" ||
+      c.name.toLowerCase().includes(q) ||
+      c.address.toLowerCase().includes(q);
+    return matchCategory && matchKeyword;
+  });
+
+  if (initialContents.length === 0) {
+    return (
+      <p className="py-16 text-center text-sm text-muted-foreground">
+        콘텐츠가 없습니다
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex gap-6">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-6">
+            <ContentFilter
+              selectedCategories={selectedCategories}
+              keyword={keyword}
+              onCategoryChange={setSelectedCategories}
+              onKeywordChange={setKeyword}
+            />
+
+            {filtered.length === 0 ? (
+              <p className="py-16 text-center text-sm text-muted-foreground">
+                조건에 맞는 콘텐츠가 없습니다
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {filtered.map((content) => (
+                  <ContentCard
+                    key={content.id}
+                    content={content}
+                    isInBasket={isInBasket(content.id)}
+                    onToggleBasket={() =>
+                      isInBasket(content.id) ? remove(content.id) : add(content)
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <aside className="hidden w-72 shrink-0 lg:block">
+          <BasketPanel
+            items={items}
+            onRemove={remove}
+            onSetPriority={setPriority}
+            onClear={clear}
+            canGenerate={items.length >= 2}
+            onGenerate={() => router.push(itineraryHref)}
+          />
+        </aside>
+      </div>
+
+      <BasketFab count={items.length} onOpen={() => setIsDrawerOpen(true)} />
+      <BasketDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        items={items}
+        onRemove={remove}
+        onSetPriority={setPriority}
+        onClear={clear}
+        canGenerate={items.length >= 2}
+        onGenerate={() => router.push(itineraryHref)}
+      />
+    </>
+  );
+}
