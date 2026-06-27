@@ -1,4 +1,4 @@
-export type TravelDuration = "DAY_TRIP" | "ONE_NIGHT" | "TWO_NIGHTS" | "CUSTOM";
+﻿export type TravelDuration = "DAY_TRIP" | "ONE_NIGHT" | "TWO_NIGHTS" | "CUSTOM";
 
 export type CompanionCondition =
   | "WITH_KIDS"
@@ -23,6 +23,17 @@ export const COMPANION_CONDITIONS: {
   { value: "FOOD_FOCUSED", label: "음식 위주" },
   { value: "INDOOR_NEEDED", label: "실내 대안 필요" },
 ];
+
+export const COMPANION_CONDITION_LABELS: Record<CompanionCondition, string> = {
+  WITH_KIDS: "아이와 함께",
+  WITH_PARENTS: "부모님과 함께",
+  WHOLE_FAMILY: "가족 전체",
+  LESS_WALKING: "걷기 적게",
+  NATURE_FOCUSED: "자연 위주",
+  EXPERIENCE_FOCUSED: "체험 위주",
+  FOOD_FOCUSED: "음식 위주",
+  INDOOR_NEEDED: "실내 대안 필요",
+};
 
 export interface DurationPreset {
   value: TravelDuration;

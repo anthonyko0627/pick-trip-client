@@ -1,4 +1,4 @@
-export interface ParsedApiError {
+﻿export interface ParsedApiError {
   message: string;
   code?: string;
   traceId?: string;
@@ -7,7 +7,7 @@ export interface ParsedApiError {
 export function parseApiError(err: unknown): ParsedApiError {
   if (err instanceof Error) {
     // apiFetch throw 형식: "API 4xx: <body-text>"
-    const bodyMatch = err.message.match(/^API \d+: (.+)$/s);
+    const bodyMatch = err.message.match(/^API \d+: ([\s\S]+)$/);
     if (bodyMatch) {
       try {
         const parsed = JSON.parse(bodyMatch[1]) as {
