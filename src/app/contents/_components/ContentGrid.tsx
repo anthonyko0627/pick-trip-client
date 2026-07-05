@@ -32,7 +32,7 @@ export function ContentGrid({
   const filtered = initialContents.filter((c) => {
     const matchCategory =
       selectedCategories.length === 0 ||
-      selectedCategories.includes(c.category);
+      (c.category !== undefined && selectedCategories.includes(c.category));
     const q = keyword.trim().toLowerCase();
     const matchKeyword =
       q === "" ||

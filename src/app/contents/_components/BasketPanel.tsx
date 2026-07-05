@@ -61,9 +61,11 @@ export function BasketPanel({
                   <p className="truncate text-sm font-medium">
                     {item.content.name}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {CATEGORY_LABELS[item.content.category]}
-                  </p>
+                  {item.content.category && (
+                    <p className="text-xs text-muted-foreground">
+                      {CATEGORY_LABELS[item.content.category]}
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"

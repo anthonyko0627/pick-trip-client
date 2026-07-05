@@ -14,40 +14,90 @@ afterEach(() => {
 });
 
 describe("getContents", () => {
-  it("regions를 쿼리 파라미터로 포함해 API를 호출한다", async () => {
+  it("region을 단수 파라미터로 포함해 API를 호출한다", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ contents: [], total: 0 }), {
+      new Response(JSON.stringify({ totalCount: 0, items: [] }), {
         status: 200,
       }),
     );
 
     await getContents({
-      regions: ["HADONG", "YEONGJU"],
+      regions: ["HADONG"],
       startDate: "2026-06-20",
       nights: 1,
     });
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      expect.stringContaining("regions=HADONG%2CYEONGJU"),
+      expect.stringContaining("region=HADONG"),
       expect.any(Object),
     );
   });
 
-  it("성공 응답을 ContentsResponse 형태로 반환한다", async () => {
-    const mockContent = {
-      id: "1",
-      name: "쌍계사",
-      region: "HADONG",
-      category: "CULTURE",
-      imageUrl: null,
-      address: "경남 하동군",
-      summary: "천년 고찰",
-      indoor: false,
-    };
+  it("선택된 지역마다 따로 호출해 결과를 합친다", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            totalCount: 1,
+            items: [
+              {
+                contentId: "1",
+                title: "쌍계사",
+                address: "경남 하동군",
+                firstImage: "",
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            totalCount: 1,
+            items: [
+              {
+                contentId: "2",
+                title: "소수서원",
+                address: "경북 영주시",
+                firstImage: "",
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      );
+
+    const result = await getContents({
+      regions: ["HADONG", "YEONGJU"],
+      startDate: "2026-06-20",
+      nights: 1,
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(result.total).toBe(2);
+    expect(result.contents.map((c) => c.name)).toEqual(["쌍계사", "소수서원"]);
+    expect(result.contents[0].region).toBe("HADONG");
+    expect(result.contents[1].region).toBe("YEONGJU");
+  });
+
+  it("성공 응답을 ContentsResponse 형태로 매핑해 반환한다", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ contents: [mockContent], total: 1 }), {
-        status: 200,
-      }),
+      new Response(
+        JSON.stringify({
+          totalCount: 1,
+          items: [
+            {
+              contentId: "1",
+              title: "쌍계사",
+              address: "경남 하동군",
+              firstImage: "",
+            },
+          ],
+        }),
+        { status: 200 },
+      ),
     );
 
     const result = await getContents({
@@ -57,7 +107,13 @@ describe("getContents", () => {
     });
 
     expect(result.total).toBe(1);
-    expect(result.contents[0].name).toBe("쌍계사");
+    expect(result.contents[0]).toEqual({
+      id: "1",
+      name: "쌍계사",
+      region: "HADONG",
+      imageUrl: null,
+      address: "경남 하동군",
+    });
   });
 
   it("API가 4xx를 반환하면 에러를 throw한다", async () => {

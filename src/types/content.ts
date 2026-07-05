@@ -25,11 +25,12 @@ export interface Content {
   id: string;
   name: string;
   region: Region;
-  category: ContentCategory;
+  // 목록/상세 조회 API가 아직 내려주지 않는 필드라 선택값으로 둔다.
+  category?: ContentCategory;
   imageUrl: string | null;
   address: string;
-  summary: string;
-  indoor: boolean;
+  summary?: string;
+  indoor?: boolean;
 }
 
 export interface ContentDetail extends Content {

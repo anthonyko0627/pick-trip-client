@@ -75,9 +75,11 @@ export function ContentDetailView({ content }: ContentDetailViewProps) {
 
       <div className="flex items-start justify-between gap-3 mb-2">
         <h1 className="text-xl font-semibold leading-tight">{content.name}</h1>
-        <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs text-primary">
-          {CATEGORY_LABELS[content.category]}
-        </span>
+        {content.category && (
+          <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs text-primary">
+            {CATEGORY_LABELS[content.category]}
+          </span>
+        )}
       </div>
 
       <p className="mb-1 text-sm text-muted-foreground">{content.address}</p>

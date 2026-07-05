@@ -39,9 +39,11 @@ export function ContentCard({
         <div className="flex flex-col gap-2 p-4 pb-2">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-medium leading-tight">{content.name}</h3>
-            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-              {CATEGORY_LABELS[content.category]}
-            </span>
+            {content.category && (
+              <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                {CATEGORY_LABELS[content.category]}
+              </span>
+            )}
           </div>
 
           <p className="text-xs text-muted-foreground">{content.address}</p>
