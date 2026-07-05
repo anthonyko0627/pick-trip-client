@@ -6,6 +6,18 @@ const API_BASE_URL =
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "tong.visitkorea.or.kr",
+      },
+      {
+        protocol: "https",
+        hostname: "tong.visitkorea.or.kr",
+      },
+    ],
+  },
   async rewrites() {
     return [
       {
