@@ -346,4 +346,74 @@ describe("ItineraryClient", () => {
       screen.getByRole("button", { name: "다시 시도" }),
     ).toBeInTheDocument();
   });
+
+  it("저장 완료 후 항목을 고정하고 '변경사항 저장'을 누르면 modifyItinerary를 호출한다", async () => {
+    seedBasket();
+    mockUpdateBasketConditions.mockResolvedValue({
+      basketId: "basket-1",
+      conditions: {
+        region: "HADONG",
+        travelDate: "2026-08-01",
+        duration: 1,
+        companions: [],
+      },
+      items: [],
+    });
+    mockAddBasketItem.mockResolvedValue({
+      itemId: "server-item-1",
+      contentId: "content-1",
+      title: "쌍계사",
+      priority: "MUST_VISIT",
+    });
+    mockGenerateItinerary.mockResolvedValue(mockGenerateResponse);
+    mockSaveItinerary.mockResolvedValue(mockSavedResponse);
+    const mockModifyItinerary = vi.mocked(
+      itineraryServiceModule.modifyItinerary,
+    );
+    mockModifyItinerary.mockResolvedValue(mockSavedResponse);
+
+    render(
+      <ItineraryClient
+        regions="HADONG"
+        startDate="2026-08-01"
+        nights="1"
+        companions=""
+      />,
+    );
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "일정 생성하기" }),
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "저장" }));
+    await screen.findByText(/저장되었습니다/);
+
+    await userEvent.click(screen.getByRole("button", { name: /고정/ }));
+
+    const saveChangesButton = screen.getByRole("button", {
+      name: "변경사항 저장",
+    });
+    expect(saveChangesButton).toBeEnabled();
+
+    await userEvent.click(saveChangesButton);
+
+    await waitFor(() => {
+      expect(mockModifyItinerary).toHaveBeenCalledWith(
+        mockSavedResponse.itineraryId,
+        expect.objectContaining({
+          title: mockSavedResponse.title,
+          days: [
+            expect.objectContaining({
+              dayIndex: 0,
+              items: [
+                expect.objectContaining({
+                  contentId: "content-1",
+                  pinned: true,
+                }),
+              ],
+            }),
+          ],
+        }),
+      );
+    });
+  });
 });
