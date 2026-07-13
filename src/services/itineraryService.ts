@@ -21,3 +21,9 @@ export async function saveItinerary(
     body: JSON.stringify(request),
   });
 }
+
+export async function getItinerary(
+  itineraryId: string,
+): Promise<ItineraryResponse> {
+  return apiFetch<ItineraryResponse>(`/api/v1/itineraries/${itineraryId}`);
+}

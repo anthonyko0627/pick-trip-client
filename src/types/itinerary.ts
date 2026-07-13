@@ -59,3 +59,14 @@ export interface ItineraryGenerateResponse {
   duration: number;
   days: Day[];
 }
+
+// ── 저장한 일정 목록 (브라우저 로컬 저장, 서버 계약 아님) ───────────
+// 로그인 + 서버 목록 조회 API가 없어 이 브라우저에 저장한 기록만 관리한다.
+export interface SavedItinerarySummary {
+  itineraryId: string;
+  title: string;
+  region: Region;
+  travelDate: string;
+  duration: number;
+  savedAt: number; // Date.now()
+}
