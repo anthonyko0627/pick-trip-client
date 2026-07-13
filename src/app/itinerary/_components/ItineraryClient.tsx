@@ -25,6 +25,7 @@ import {
 import { ErrorState } from "./ErrorState";
 import { GeneratingState } from "./GeneratingState";
 import { ItineraryResult } from "./ItineraryResult";
+import { ShareButton } from "./ShareButton";
 import { TripSummary } from "./TripSummary";
 
 type ItineraryPhase =
@@ -185,6 +186,7 @@ export function ItineraryClient({
       <div className="space-y-4">
         <ItineraryResult data={phase.data} />
         <p className="text-sm text-green-600">일정이 저장되었습니다.</p>
+        <ShareButton itineraryId={phase.data.itineraryId} />
       </div>
     );
   }
