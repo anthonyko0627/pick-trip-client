@@ -346,4 +346,51 @@ describe("ItineraryClient", () => {
       screen.getByRole("button", { name: "다시 시도" }),
     ).toBeInTheDocument();
   });
+
+  it("저장 성공 시 저장한 일정 목록(localStorage)에 요약이 기록된다", async () => {
+    seedBasket();
+    mockUpdateBasketConditions.mockResolvedValue({
+      basketId: "basket-1",
+      conditions: {
+        region: "HADONG",
+        travelDate: "2026-08-01",
+        duration: 1,
+        companions: [],
+      },
+      items: [],
+    });
+    mockAddBasketItem.mockResolvedValue({
+      itemId: "server-item-1",
+      contentId: "content-1",
+      title: "쌍계사",
+      priority: "MUST_VISIT",
+    });
+    mockGenerateItinerary.mockResolvedValue(mockGenerateResponse);
+    mockSaveItinerary.mockResolvedValue(mockSavedResponse);
+
+    render(
+      <ItineraryClient
+        regions="HADONG"
+        startDate="2026-08-01"
+        nights="1"
+        companions=""
+      />,
+    );
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "일정 생성하기" }),
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "저장" }));
+    await screen.findByText(/저장되었습니다/);
+
+    const stored = JSON.parse(
+      localStorage.getItem("pick-trip-saved-itineraries") ?? "[]",
+    );
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatchObject({
+      itineraryId: mockSavedResponse.itineraryId,
+      title: mockSavedResponse.title,
+      region: mockSavedResponse.region,
+    });
+  });
 });

@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useBasket } from "@/hooks/useBasket";
+import { useSavedItineraries } from "@/hooks/useSavedItineraries";
 import { type ParsedApiError, parseApiError } from "@/lib/errors";
 import {
   addBasketItem,
@@ -91,6 +92,7 @@ export function ItineraryClient({
 }: ItineraryClientProps) {
   const [phase, setPhase] = useState<ItineraryPhase>({ status: "idle" });
   const { items } = useBasket();
+  const { add: addSavedItinerary } = useSavedItineraries();
 
   const parsedRegions = regions.split(",").filter(Boolean) as Region[];
   const parsedNights = Number(nights) || 0;
@@ -173,6 +175,14 @@ export function ItineraryClient({
         })),
       };
       const saved = await saveItinerary(request);
+      addSavedItinerary({
+        itineraryId: saved.itineraryId,
+        title: saved.title,
+        region: saved.region,
+        travelDate: saved.travelDate,
+        duration: saved.duration,
+        savedAt: Date.now(),
+      });
       setPhase({ status: "saved", data: saved });
     } catch (err) {
       const parsed = parseApiError(err);
