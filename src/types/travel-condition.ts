@@ -35,6 +35,32 @@ export const COMPANION_CONDITION_LABELS: Record<CompanionCondition, string> = {
   INDOOR_NEEDED: "실내 대안 필요",
 };
 
+// 백엔드(UpdateBasketConditionsRequest)의 동행 조건 enum은 프론트 값과 이름이 다르다.
+// (WITH_KIDS→WITH_CHILD, INDOOR_NEEDED→INDOOR_ALTERNATIVE, 나머지는 동일)
+export type ServerCompanionCondition =
+  | "WITH_CHILD"
+  | "WITH_PARENTS"
+  | "WHOLE_FAMILY"
+  | "LESS_WALKING"
+  | "NATURE_FOCUSED"
+  | "EXPERIENCE_FOCUSED"
+  | "FOOD_FOCUSED"
+  | "INDOOR_ALTERNATIVE";
+
+export const COMPANION_CONDITION_TO_SERVER: Record<
+  CompanionCondition,
+  ServerCompanionCondition
+> = {
+  WITH_KIDS: "WITH_CHILD",
+  WITH_PARENTS: "WITH_PARENTS",
+  WHOLE_FAMILY: "WHOLE_FAMILY",
+  LESS_WALKING: "LESS_WALKING",
+  NATURE_FOCUSED: "NATURE_FOCUSED",
+  EXPERIENCE_FOCUSED: "EXPERIENCE_FOCUSED",
+  FOOD_FOCUSED: "FOOD_FOCUSED",
+  INDOOR_NEEDED: "INDOOR_ALTERNATIVE",
+};
+
 export interface DurationPreset {
   value: TravelDuration;
   label: string;
