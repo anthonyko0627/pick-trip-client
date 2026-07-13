@@ -1,8 +1,8 @@
-import type { GenerateItineraryResponse } from "@/types/itinerary";
+import type { Day } from "@/types/itinerary";
 import { DayCard } from "./DayCard";
 
 interface ItineraryResultProps {
-  data: GenerateItineraryResponse;
+  data: { days: Day[] };
 }
 
 export function ItineraryResult({ data }: ItineraryResultProps) {
@@ -14,7 +14,7 @@ export function ItineraryResult({ data }: ItineraryResultProps) {
       ) : (
         <div className="mt-4 flex flex-col gap-4">
           {data.days.map((day) => (
-            <DayCard key={day.dayNumber} day={day} />
+            <DayCard key={day.dayId} day={day} />
           ))}
         </div>
       )}

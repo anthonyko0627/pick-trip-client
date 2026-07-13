@@ -1,52 +1,36 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
-  GenerateItineraryRequest,
-  GenerateItineraryResponse,
+  ItineraryGenerateResponse,
+  ItineraryResponse,
+  SaveItineraryRequest,
 } from "@/types/itinerary";
 import * as apiClientModule from "./apiClient";
-import { generateItinerary } from "./itineraryService";
+import { generateItinerary, saveItinerary } from "./itineraryService";
 
 vi.mock("./apiClient");
 
 describe("generateItinerary", () => {
   const mockApiFetch = vi.mocked(apiClientModule.apiFetch);
 
-  const mockResponse: GenerateItineraryResponse = {
-    itineraryId: "itinerary-123",
+  const mockResponse: ItineraryGenerateResponse = {
+    title: "하동 1박 2일 여행",
+    region: "HADONG",
+    travelDate: "2025-01-15",
+    duration: 1,
     days: [
       {
-        date: "2025-01-15",
-        dayNumber: 1,
-        places: [
+        dayId: "day-1",
+        dayIndex: 0,
+        items: [
           {
+            itemId: "item-1",
             contentId: "content-1",
-            name: "예천군 문화유산",
-            startTime: "09:00",
-            endTime: "11:00",
-            stayDuration: "2시간",
+            title: "예천군 문화유산",
+            order: 0,
             reason: "지역 대표 명소",
-            needsVerification: false,
+            pinned: false,
           },
         ],
-      },
-    ],
-    generatedAt: "2025-01-10T10:00:00Z",
-  };
-
-  const mockRequest: GenerateItineraryRequest = {
-    regions: ["HADONG"],
-    startDate: "2025-01-15",
-    nights: 1,
-    companions: [
-      {
-        ageGroup: "ADULT",
-        preferences: ["CULTURE", "NATURE"],
-      },
-    ],
-    contents: [
-      {
-        contentId: "content-1",
-        priority: "HIGH",
       },
     ],
   };
@@ -55,18 +39,75 @@ describe("generateItinerary", () => {
     vi.clearAllMocks();
   });
 
-  it("성공 케이스: apiFetch가 성공 응답 반환 시 GenerateItineraryResponse를 그대로 반환", async () => {
+  it("요청 바디 없이 POST /api/v1/itineraries/generate를 호출", async () => {
     mockApiFetch.mockResolvedValueOnce(mockResponse);
 
-    const result = await generateItinerary(mockRequest);
+    const result = await generateItinerary();
 
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      "/api/v1/itineraries/generate",
+      expect.objectContaining({ method: "POST" }),
+    );
     expect(result).toEqual(mockResponse);
   });
 
-  it("요청 본문 검증: apiFetch가 POST /api/v1/itineraries에 올바른 JSON body로 호출", async () => {
+  it("오류 전파: apiFetch가 throw 하면 오류를 그대로 전파", async () => {
+    const testError = new Error('API 401: {"code":"AUTH_REQUIRED"}');
+    mockApiFetch.mockRejectedValueOnce(testError);
+
+    await expect(generateItinerary()).rejects.toThrow(testError);
+  });
+});
+
+describe("saveItinerary", () => {
+  const mockApiFetch = vi.mocked(apiClientModule.apiFetch);
+
+  const mockRequest: SaveItineraryRequest = {
+    title: "하동 1박 2일 여행",
+    region: "HADONG",
+    travelDate: "2025-01-15",
+    duration: 1,
+    days: [
+      {
+        dayIndex: 0,
+        items: [{ contentId: "content-1", order: 0 }],
+      },
+    ],
+  };
+
+  const mockResponse: ItineraryResponse = {
+    itineraryId: "itinerary-1",
+    title: mockRequest.title,
+    region: mockRequest.region,
+    travelDate: mockRequest.travelDate,
+    duration: mockRequest.duration,
+    lastModifiedAt: "2025-01-15T10:00:00Z",
+    days: [
+      {
+        dayId: "day-1",
+        dayIndex: 0,
+        items: [
+          {
+            itemId: "item-1",
+            contentId: "content-1",
+            title: "예천군 문화유산",
+            order: 0,
+            reason: "",
+            pinned: false,
+          },
+        ],
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("POST /api/v1/itineraries를 올바른 body로 호출하고 응답을 그대로 반환", async () => {
     mockApiFetch.mockResolvedValueOnce(mockResponse);
 
-    await generateItinerary(mockRequest);
+    const result = await saveItinerary(mockRequest);
 
     expect(mockApiFetch).toHaveBeenCalledWith(
       "/api/v1/itineraries",
@@ -75,55 +116,6 @@ describe("generateItinerary", () => {
         body: JSON.stringify(mockRequest),
       }),
     );
-  });
-
-  it("오류 전파: apiFetch가 throw 하면 오류를 그대로 전파", async () => {
-    const testError = new Error("API 400: Invalid request");
-    mockApiFetch.mockRejectedValueOnce(testError);
-
-    await expect(generateItinerary(mockRequest)).rejects.toThrow(testError);
-  });
-
-  it("빈 companions: companions가 빈 배열일 때도 정상 호출", async () => {
-    mockApiFetch.mockResolvedValueOnce(mockResponse);
-
-    const requestWithEmptyCompanions: GenerateItineraryRequest = {
-      ...mockRequest,
-      companions: [],
-    };
-
-    await generateItinerary(requestWithEmptyCompanions);
-
-    expect(mockApiFetch).toHaveBeenCalledWith(
-      "/api/v1/itineraries",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify(requestWithEmptyCompanions),
-      }),
-    );
-  });
-
-  it("null priority: contents 배열 아이템의 priority가 null일 때도 정상 직렬화", async () => {
-    mockApiFetch.mockResolvedValueOnce(mockResponse);
-
-    const requestWithNullPriority: GenerateItineraryRequest = {
-      ...mockRequest,
-      contents: [
-        {
-          contentId: "content-1",
-          priority: null,
-        },
-      ],
-    };
-
-    await generateItinerary(requestWithNullPriority);
-
-    expect(mockApiFetch).toHaveBeenCalledWith(
-      "/api/v1/itineraries",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify(requestWithNullPriority),
-      }),
-    );
+    expect(result).toEqual(mockResponse);
   });
 });

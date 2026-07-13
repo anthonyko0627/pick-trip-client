@@ -1,40 +1,61 @@
-import type { BasketPriority } from "@/types/basket";
 import type { Region } from "@/types/region";
-import type { CompanionCondition } from "@/types/travel-condition";
 
-// ── API 요청 ──────────────────────────────────────────────
-export interface GenerateItineraryRequest {
-  regions: Region[];
-  startDate: string; // "YYYY-MM-DD"
-  nights: number; // 0 = 당일치기
-  companions: CompanionCondition[];
-  contents: ItineraryContentInput[];
+// ── 저장/수정 요청 공용 (POST save, PATCH modify) ──────────────────
+export interface SaveItineraryRequest {
+  title: string;
+  region: Region;
+  travelDate: string; // "YYYY-MM-DD"
+  duration: number;
+  days: DayRequest[];
 }
 
-export interface ItineraryContentInput {
+export interface DayRequest {
+  dayIndex: number;
+  items: ItemRequest[];
+}
+
+export interface ItemRequest {
   contentId: string;
-  priority: BasketPriority | null;
+  title?: string;
+  order?: number;
+  reason?: string;
+  pinned?: boolean;
 }
 
-// ── API 응답 ──────────────────────────────────────────────
-export interface GenerateItineraryResponse {
+// ── 조회/저장/수정 응답 공용 (GET, POST save, PATCH modify) ──────────
+export interface ItineraryResponse {
   itineraryId: string;
-  days: ItineraryDay[];
-  generatedAt: string; // ISO 8601
+  title: string;
+  region: Region;
+  travelDate: string;
+  duration: number;
+  lastModifiedAt: string; // ISO 8601
+  days: Day[];
 }
 
-export interface ItineraryDay {
-  date: string; // "YYYY-MM-DD"
-  dayNumber: number; // 1-based
-  places: ItineraryPlace[];
+export interface Day {
+  dayId: string;
+  dayIndex: number;
+  items: Item[];
 }
 
-export interface ItineraryPlace {
+export interface Item {
+  itemId: string;
   contentId: string;
-  name: string;
-  startTime: string; // "HH:mm"
-  endTime: string; // "HH:mm"
-  stayDuration: string; // 예: "1시간 30분"
-  reason: string; // AI 배치 이유
-  needsVerification: boolean; // 방문 전 확인 필요
+  title: string;
+  order: number;
+  reason: string;
+  pinned: boolean;
+  // 백엔드 Item 스키마에는 startTime/endTime/stayDuration/needsVerification이 없다.
+  // 화면 표시용으로 필요하면 별도 확인 후 추가한다.
+}
+
+// ── 생성 응답 (POST /api/v1/itineraries/generate) ───────────────────
+// generate는 요청 바디를 받지 않는다 — 서버에 저장된 사용자의 바구니/조건을 읽어 생성한다.
+export interface ItineraryGenerateResponse {
+  title: string;
+  region: Region;
+  travelDate: string;
+  duration: number;
+  days: Day[];
 }

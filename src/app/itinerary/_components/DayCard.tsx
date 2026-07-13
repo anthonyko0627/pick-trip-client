@@ -1,23 +1,20 @@
-import type { ItineraryDay } from "@/types/itinerary";
+import type { Day } from "@/types/itinerary";
 import { PlaceItem } from "./PlaceItem";
 
 interface DayCardProps {
-  day: ItineraryDay;
+  day: Day;
 }
 
 export function DayCard({ day }: DayCardProps) {
-  const parts = day.date.split("-");
-  const month = Number(parts[1]);
-  const dayOfMonth = Number(parts[2]);
+  // dayIndex가 0-based인지 1-based인지 백엔드 확인 전까지는 0-based로 가정한다.
+  const dayNumber = day.dayIndex + 1;
 
   return (
     <div className="rounded-lg border p-4">
-      <h3 className="font-semibold">
-        {day.dayNumber}일차 · {month}월 {dayOfMonth}일
-      </h3>
+      <h3 className="font-semibold">{dayNumber}일차</h3>
       <div className="mt-2 divide-y">
-        {day.places.map((place) => (
-          <PlaceItem key={place.contentId} place={place} />
+        {day.items.map((item) => (
+          <PlaceItem key={item.itemId} item={item} />
         ))}
       </div>
     </div>
