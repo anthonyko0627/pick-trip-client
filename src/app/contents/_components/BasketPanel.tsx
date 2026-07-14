@@ -1,9 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
 import type { BasketItem, BasketPriority } from "@/types/basket";
-import { PRIORITY_LABELS } from "@/types/basket";
+import { PRIORITY_LABELS, PRIORITY_SELECTED_CLASSES } from "@/types/basket";
 import { CATEGORY_LABELS } from "@/types/content";
 
 interface BasketPanelProps {
@@ -28,7 +29,8 @@ export function BasketPanel({
   return (
     <div className="sticky top-4 rounded-xl border border-border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-semibold">
+        <h2 className="flex items-center gap-1.5 font-semibold">
+          <Icon name="bookmark" size={16} className="text-primary" />
           여행 바구니{" "}
           <span className="text-sm font-normal text-muted-foreground">
             {items.length}개
@@ -70,10 +72,10 @@ export function BasketPanel({
                 <button
                   type="button"
                   onClick={() => onRemove(item.content.id)}
-                  className="shrink-0 text-xs text-muted-foreground hover:text-destructive"
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
                   aria-label={`${item.content.name} 삭제`}
                 >
-                  삭제
+                  <Icon name="trash" size={14} />
                 </button>
               </div>
 
@@ -91,7 +93,7 @@ export function BasketPanel({
                     className={cn(
                       "flex-1 rounded px-1 py-0.5 text-[10px] transition-colors",
                       item.priority === level
-                        ? "bg-primary text-primary-foreground"
+                        ? PRIORITY_SELECTED_CLASSES[level]
                         : "bg-muted text-muted-foreground hover:bg-muted/80",
                     )}
                   >

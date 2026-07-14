@@ -4,7 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { CATEGORY_LABELS, type Content } from "@/types/content";
+import { Icon } from "@/components/ui/icon";
+import {
+  CATEGORY_BADGE_CLASSES,
+  CATEGORY_LABELS,
+  type Content,
+} from "@/types/content";
 
 interface ContentCardProps {
   content: Content;
@@ -18,7 +23,7 @@ export function ContentCard({
   onToggleBasket,
 }: ContentCardProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <div className="overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-md">
       <Link href={`/contents/${content.id}`} className="block">
         <div className="relative aspect-video bg-muted">
           {content.imageUrl ? (
@@ -40,7 +45,9 @@ export function ContentCard({
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-medium leading-tight">{content.name}</h3>
             {content.category && (
-              <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_BADGE_CLASSES[content.category]}`}
+              >
                 {CATEGORY_LABELS[content.category]}
               </span>
             )}
@@ -60,6 +67,7 @@ export function ContentCard({
           className="mt-1 w-full"
           onClick={onToggleBasket}
         >
+          <Icon name={isInBasket ? "check" : "plus"} size={14} />
           {isInBasket ? "담김" : "담기"}
         </Button>
       </div>

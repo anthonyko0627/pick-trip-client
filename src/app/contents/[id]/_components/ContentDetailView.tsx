@@ -4,8 +4,13 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { useBasket } from "@/hooks/useBasket";
-import { CATEGORY_LABELS, type ContentDetail } from "@/types/content";
+import {
+  CATEGORY_BADGE_CLASSES,
+  CATEGORY_LABELS,
+  type ContentDetail,
+} from "@/types/content";
 
 interface ContentDetailViewProps {
   content: ContentDetail;
@@ -76,7 +81,9 @@ export function ContentDetailView({ content }: ContentDetailViewProps) {
       <div className="flex items-start justify-between gap-3 mb-2">
         <h1 className="text-xl font-semibold leading-tight">{content.name}</h1>
         {content.category && (
-          <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs text-primary">
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${CATEGORY_BADGE_CLASSES[content.category]}`}
+          >
             {CATEGORY_LABELS[content.category]}
           </span>
         )}
@@ -101,6 +108,7 @@ export function ContentDetailView({ content }: ContentDetailViewProps) {
         className="w-full"
         onClick={() => (inBasket ? remove(content.id) : add(content))}
       >
+        <Icon name={inBasket ? "check" : "plus"} size={16} />
         {inBasket ? "담김" : "담기"}
       </Button>
     </div>

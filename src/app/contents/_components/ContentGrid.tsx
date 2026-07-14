@@ -66,17 +66,24 @@ export function ContentGrid({
                 조건에 맞는 콘텐츠가 없습니다
               </p>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filtered.map((content) => (
-                  <ContentCard
-                    key={content.id}
-                    content={content}
-                    isInBasket={isInBasket(content.id)}
-                    onToggleBasket={() =>
-                      isInBasket(content.id) ? remove(content.id) : add(content)
-                    }
-                  />
-                ))}
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-muted-foreground">
+                  {filtered.length}개 결과
+                </p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filtered.map((content) => (
+                    <ContentCard
+                      key={content.id}
+                      content={content}
+                      isInBasket={isInBasket(content.id)}
+                      onToggleBasket={() =>
+                        isInBasket(content.id)
+                          ? remove(content.id)
+                          : add(content)
+                      }
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>

@@ -10,6 +10,13 @@ export const PRIORITY_LABELS: Record<BasketPriority, string> = {
   OPTIONAL: "시간 남으면",
 };
 
+// 우선순위별 선택 상태 배지 색상 (참고 디자인: 꼭 가기=amber, 가면 좋음=teal, 시간 남으면=gray)
+export const PRIORITY_SELECTED_CLASSES: Record<BasketPriority, string> = {
+  MUST: "bg-amber-500 text-white",
+  SHOULD: "bg-teal-600 text-white",
+  OPTIONAL: "bg-gray-500 text-white",
+};
+
 export interface BasketItem {
   content: Content;
   addedAt: number;
