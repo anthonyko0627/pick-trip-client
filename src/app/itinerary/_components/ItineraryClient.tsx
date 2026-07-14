@@ -28,6 +28,7 @@ import {
 import { ErrorState } from "./ErrorState";
 import { GeneratingState } from "./GeneratingState";
 import { ItineraryResult } from "./ItineraryResult";
+import { ShareButton } from "./ShareButton";
 import { TripSummary } from "./TripSummary";
 
 type ItineraryPhase =
@@ -109,6 +110,7 @@ function SavedItineraryPanel({ data }: { data: ItineraryResponse }) {
         }}
       />
       <p className="text-sm text-teal-700">일정이 저장되었습니다.</p>
+      <ShareButton itineraryId={data.itineraryId} />
     </div>
   );
 }

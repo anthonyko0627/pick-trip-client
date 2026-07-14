@@ -70,3 +70,19 @@ export interface SavedItinerarySummary {
   duration: number;
   savedAt: number; // Date.now()
 }
+
+// ── 공유 (POST /api/v1/itineraries/{itineraryId}/share) ─────────────
+export interface ShareCreateResponse {
+  token: string;
+  shareUrl: string;
+}
+
+// ── 공유 조회 (GET /api/v1/share/{token}) ────────────────────────────
+// 비로그인 사용자도 접근 가능한 공개·읽기 전용 응답이라 itineraryId를 노출하지 않는다.
+export interface SharedItineraryResponse {
+  title: string;
+  region: Region;
+  travelDate: string;
+  duration: number;
+  days: Day[];
+}
