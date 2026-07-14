@@ -44,6 +44,19 @@ describe("updateBasketConditions", () => {
     );
     expect(result).toEqual(mockResponse);
   });
+
+  it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
+    mockApiFetch.mockResolvedValueOnce(mockResponse);
+
+    await updateBasketConditions(mockRequest, "access-1");
+
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      "/api/v1/baskets/conditions",
+      expect.objectContaining({
+        headers: { Authorization: "Bearer access-1" },
+      }),
+    );
+  });
 });
 
 describe("addBasketItem", () => {
@@ -88,5 +101,18 @@ describe("addBasketItem", () => {
     mockApiFetch.mockRejectedValueOnce(testError);
 
     await expect(addBasketItem(mockRequest)).rejects.toThrow(testError);
+  });
+
+  it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
+    mockApiFetch.mockResolvedValueOnce(mockResponse);
+
+    await addBasketItem(mockRequest, "access-1");
+
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      "/api/v1/baskets/items",
+      expect.objectContaining({
+        headers: { Authorization: "Bearer access-1" },
+      }),
+    );
   });
 });

@@ -62,6 +62,19 @@ describe("generateItinerary", () => {
 
     await expect(generateItinerary()).rejects.toThrow(testError);
   });
+
+  it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
+    mockApiFetch.mockResolvedValueOnce(mockResponse);
+
+    await generateItinerary("access-1");
+
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      "/api/v1/itineraries/generate",
+      expect.objectContaining({
+        headers: { Authorization: "Bearer access-1" },
+      }),
+    );
+  });
 });
 
 describe("saveItinerary", () => {
@@ -122,6 +135,19 @@ describe("saveItinerary", () => {
       }),
     );
     expect(result).toEqual(mockResponse);
+  });
+
+  it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
+    mockApiFetch.mockResolvedValueOnce(mockResponse);
+
+    await saveItinerary(mockRequest, "access-1");
+
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      "/api/v1/itineraries",
+      expect.objectContaining({
+        headers: { Authorization: "Bearer access-1" },
+      }),
+    );
   });
 });
 

@@ -13,6 +13,9 @@ import { ItineraryClient } from "./ItineraryClient";
 vi.mock("@/services/basketService");
 vi.mock("@/services/itineraryService");
 vi.mock("@/services/shareService");
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({ accessToken: null }),
+}));
 
 const BASKET_STORAGE_KEY = "pick-trip-basket";
 
@@ -137,6 +140,7 @@ describe("ItineraryClient", () => {
         travelDate: "2026-08-01",
         duration: 1,
       }),
+      undefined,
     );
     expect(mockAddBasketItem).toHaveBeenCalledTimes(2);
     expect(mockAddBasketItem).toHaveBeenCalledWith(
@@ -144,6 +148,7 @@ describe("ItineraryClient", () => {
         contentId: "content-1",
         priority: "MUST_VISIT",
       }),
+      undefined,
     );
 
     // save API는 아직 호출되지 않아야 한다 — generate 응답은 미리보기일 뿐이다
@@ -247,6 +252,7 @@ describe("ItineraryClient", () => {
             }),
           ],
         }),
+        undefined,
       );
     });
 
@@ -291,7 +297,7 @@ describe("ItineraryClient", () => {
     );
 
     expect(
-      await screen.findByText(/로그인 기능은 준비 중입니다/),
+      await screen.findByText(/로그인하면 실제 AI 일정 생성/),
     ).toBeInTheDocument();
     expect(screen.getByText("쌍계사")).toBeInTheDocument();
     expect(screen.getByText("화개장터")).toBeInTheDocument();
@@ -299,6 +305,14 @@ describe("ItineraryClient", () => {
     expect(
       screen.queryByRole("button", { name: "저장" }),
     ).not.toBeInTheDocument();
+    const loginLink = screen.getByRole("link", { name: "로그인하고 계속하기" });
+    expect(loginLink).toHaveAttribute(
+      "href",
+      expect.stringContaining("/login?next="),
+    );
+    expect(decodeURIComponent(loginLink.getAttribute("href") ?? "")).toContain(
+      "/itinerary?regions=HADONG",
+    );
     expect(
       screen.getByRole("button", { name: "다시 생성" }),
     ).toBeInTheDocument();

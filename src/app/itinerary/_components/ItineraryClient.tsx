@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { useAuth } from "@/hooks/useAuth";
 import { useBasket } from "@/hooks/useBasket";
 import { useItineraryEditor } from "@/hooks/useItineraryEditor";
 import { useSavedItineraries } from "@/hooks/useSavedItineraries";
@@ -131,12 +133,14 @@ export function ItineraryClient({
   const [phase, setPhase] = useState<ItineraryPhase>({ status: "idle" });
   const { items } = useBasket();
   const { add: addSavedItinerary } = useSavedItineraries();
+  const { accessToken } = useAuth();
 
   const parsedRegions = regions.split(",").filter(Boolean) as Region[];
   const parsedNights = Number(nights) || 0;
   const parsedCompanions = companions
     .split(",")
     .filter(Boolean) as CompanionCondition[];
+  const loginNext = `/itinerary?${new URLSearchParams({ regions, startDate, nights, companions }).toString()}`;
 
   async function handleGenerate() {
     if (phase.status === "loading") return;
@@ -146,32 +150,38 @@ export function ItineraryClient({
     try {
       // generate는 요청 바디를 받지 않고 서버에 저장된 바구니/조건을 읽어 생성하므로,
       // 호출 전에 현재 바구니/조건을 서버에 반영한다.
-      await updateBasketConditions({
-        region: parsedRegions[0],
-        travelDate: startDate,
-        duration: parsedNights,
-        companions: parsedCompanions.map(
-          (c) => COMPANION_CONDITION_TO_SERVER[c],
-        ),
-      });
+      await updateBasketConditions(
+        {
+          region: parsedRegions[0],
+          travelDate: startDate,
+          duration: parsedNights,
+          companions: parsedCompanions.map(
+            (c) => COMPANION_CONDITION_TO_SERVER[c],
+          ),
+        },
+        accessToken ?? undefined,
+      );
 
       for (const item of items) {
         try {
-          await addBasketItem({
-            contentId: item.content.id,
-            priority: BASKET_PRIORITY_TO_SERVER[item.priority ?? "OPTIONAL"],
-            title: item.content.name,
-            ...(item.content.imageUrl
-              ? { thumbnailUrl: item.content.imageUrl }
-              : {}),
-          });
+          await addBasketItem(
+            {
+              contentId: item.content.id,
+              priority: BASKET_PRIORITY_TO_SERVER[item.priority ?? "OPTIONAL"],
+              title: item.content.name,
+              ...(item.content.imageUrl
+                ? { thumbnailUrl: item.content.imageUrl }
+                : {}),
+            },
+            accessToken ?? undefined,
+          );
         } catch (err) {
           const parsed = parseApiError(err);
           if (parsed.code !== "BASKET_ITEM_DUPLICATE") throw err;
         }
       }
 
-      const data = await generateItinerary();
+      const data = await generateItinerary(accessToken ?? undefined);
       setPhase({ status: "preview", data });
     } catch (err) {
       const { message, code, traceId } = parseApiError(err);
@@ -212,7 +222,7 @@ export function ItineraryClient({
           })),
         })),
       };
-      const saved = await saveItinerary(request);
+      const saved = await saveItinerary(request, accessToken ?? undefined);
       addSavedItinerary({
         itineraryId: saved.itineraryId,
         title: saved.title,
@@ -238,14 +248,23 @@ export function ItineraryClient({
     return (
       <div className="space-y-4">
         <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-700">
-          로그인 기능은 준비 중입니다. 지금 보시는 일정은 담아주신 콘텐츠를
-          기반으로 만든 예시이며, 로그인 후 실제 AI 일정 생성/저장 기능을 이용할
-          수 있어요.
+          지금 보시는 일정은 담아주신 콘텐츠를 기반으로 만든 예시입니다.
+          로그인하면 실제 AI 일정 생성/저장 기능을 이용할 수 있어요.
         </p>
         <ItineraryResult data={phase.data} />
-        <Button variant="outline" onClick={() => setPhase({ status: "idle" })}>
-          다시 생성
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href={`/login?next=${encodeURIComponent(loginNext)}`}>
+              로그인하고 계속하기
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setPhase({ status: "idle" })}
+          >
+            다시 생성
+          </Button>
+        </div>
       </div>
     );
   }
