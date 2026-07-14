@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { useBasket } from "@/hooks/useBasket";
+import { useItineraryEditor } from "@/hooks/useItineraryEditor";
 import { useSavedItineraries } from "@/hooks/useSavedItineraries";
 import { type ParsedApiError, parseApiError } from "@/lib/errors";
 import {
@@ -76,6 +77,40 @@ function buildLoginPreviewItinerary(
     duration: nights,
     days,
   };
+}
+
+function SavedItineraryPanel({ data }: { data: ItineraryResponse }) {
+  const editor = useItineraryEditor({
+    itineraryId: data.itineraryId,
+    title: data.title,
+    region: data.region,
+    travelDate: data.travelDate,
+    duration: data.duration,
+    initialDays: data.days,
+  });
+
+  return (
+    <div className="space-y-4">
+      <ItineraryResult
+        data={data}
+        editor={{
+          region: data.region,
+          travelDate: data.travelDate,
+          duration: data.duration,
+          days: editor.days,
+          isDirty: editor.isDirty,
+          isSaving: editor.isSaving,
+          saveError: editor.saveError,
+          onMoveItem: editor.moveItem,
+          onRemoveItem: editor.removeItem,
+          onTogglePinned: editor.togglePinned,
+          onReplaceItem: editor.replaceItem,
+          onSave: editor.save,
+        }}
+      />
+      <p className="text-sm text-teal-700">일정이 저장되었습니다.</p>
+    </div>
+  );
 }
 
 interface ItineraryClientProps {
@@ -193,10 +228,7 @@ export function ItineraryClient({
 
   if (phase.status === "saved") {
     return (
-      <div className="space-y-4">
-        <ItineraryResult data={phase.data} />
-        <p className="text-sm text-teal-700">일정이 저장되었습니다.</p>
-      </div>
+      <SavedItineraryPanel key={phase.data.itineraryId} data={phase.data} />
     );
   }
 

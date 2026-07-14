@@ -27,3 +27,13 @@ export async function getItinerary(
 ): Promise<ItineraryResponse> {
   return apiFetch<ItineraryResponse>(`/api/v1/itineraries/${itineraryId}`);
 }
+
+export async function modifyItinerary(
+  itineraryId: string,
+  request: SaveItineraryRequest,
+): Promise<ItineraryResponse> {
+  return apiFetch<ItineraryResponse>(`/api/v1/itineraries/${itineraryId}`, {
+    method: "PATCH",
+    body: JSON.stringify(request),
+  });
+}
