@@ -31,7 +31,7 @@ export function CompanionSelector({ value, onChange }: CompanionSelectorProps) {
             onClick={() => toggle(c.value)}
             className={
               selected
-                ? "rounded-full border border-primary bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary"
+                ? "rounded-full border border-primary bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground"
                 : "rounded-full border border-border bg-card px-3 py-1.5 text-sm hover:border-primary/40"
             }
           >

@@ -26,7 +26,7 @@ export function RegionCard({ region, selected, onToggle }: RegionCardProps) {
       className={cn(
         "flex w-full items-center gap-3 rounded-xl border-2 p-4 text-left transition-all",
         selected
-          ? "border-primary bg-primary/5"
+          ? "border-primary bg-accent"
           : "border-border bg-card hover:border-primary/40 hover:bg-muted/40",
       )}
     >

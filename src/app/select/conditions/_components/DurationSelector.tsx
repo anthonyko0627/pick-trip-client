@@ -34,7 +34,7 @@ export function DurationSelector({
               className={cn(
                 "rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all",
                 selected
-                  ? "border-primary bg-primary/5 text-primary"
+                  ? "border-primary bg-accent text-accent-foreground"
                   : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:bg-muted/40",
               )}
             >
