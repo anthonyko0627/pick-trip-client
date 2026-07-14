@@ -9,8 +9,11 @@ export const metadata: Metadata = {
 export default function ItinerariesPage() {
   return (
     <main className="container mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-xl font-bold">저장한 일정</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mb-1.5 text-xs font-semibold tracking-wide text-primary uppercase">
+        My Trips
+      </p>
+      <h1 className="text-2xl font-bold tracking-tight">저장한 일정</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
         이 브라우저에서 저장한 일정 목록입니다. 다른 기기나 브라우저에서는
         보이지 않습니다.
       </p>

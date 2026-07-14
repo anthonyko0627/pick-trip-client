@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { ItineraryResult } from "@/app/itinerary/_components/ItineraryResult";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { useSavedItineraries } from "@/hooks/useSavedItineraries";
 import { parseApiError } from "@/lib/errors";
 import { getItinerary } from "@/services/itineraryService";
@@ -52,21 +53,36 @@ export function SavedItinerariesList() {
   }
 
   if (items.length === 0) {
-    return <p className="text-sm text-gray-500">아직 저장한 일정이 없습니다</p>;
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center">
+        <Icon name="bookmark" size={32} className="text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">
+          아직 저장한 일정이 없습니다
+        </p>
+      </div>
+    );
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="flex flex-col gap-3">
       {items.map((item) => {
         const isExpanded = expandedId === item.itineraryId;
         const detail = details[item.itineraryId];
 
         return (
-          <li key={item.itineraryId} className="rounded-lg border p-4">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <p className="font-semibold">{item.title}</p>
-                <p className="text-sm text-gray-500">
+          <li
+            key={item.itineraryId}
+            className="rounded-2xl border border-border bg-card p-5"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50">
+                <Icon name="bookmark" size={22} className="text-amber-500" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-foreground">
+                  {item.title}
+                </p>
+                <p className="mt-0.5 truncate text-sm text-muted-foreground">
                   {REGION_LABELS[item.region]} · {item.travelDate} ·{" "}
                   {formatDuration(item.duration)}
                 </p>
@@ -92,13 +108,15 @@ export function SavedItinerariesList() {
             </div>
 
             {isExpanded && (
-              <div className="mt-4">
+              <div className="mt-4 border-t border-border pt-4">
                 {detail?.status === "loading" && (
-                  <p className="text-sm text-gray-500">불러오는 중...</p>
+                  <p className="text-sm text-muted-foreground">
+                    불러오는 중...
+                  </p>
                 )}
                 {detail?.status === "error" && (
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-red-600">{detail.message}</p>
+                    <p className="text-sm text-destructive">{detail.message}</p>
                     <Button
                       type="button"
                       variant="outline"
