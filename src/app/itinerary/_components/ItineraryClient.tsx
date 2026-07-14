@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { useBasket } from "@/hooks/useBasket";
 import { useSavedItineraries } from "@/hooks/useSavedItineraries";
 import { type ParsedApiError, parseApiError } from "@/lib/errors";
@@ -194,7 +195,7 @@ export function ItineraryClient({
     return (
       <div className="space-y-4">
         <ItineraryResult data={phase.data} />
-        <p className="text-sm text-green-600">일정이 저장되었습니다.</p>
+        <p className="text-sm text-teal-700">일정이 저장되었습니다.</p>
       </div>
     );
   }
@@ -220,7 +221,7 @@ export function ItineraryClient({
       <div className="space-y-4">
         <ItineraryResult data={phase.data} />
         {phase.status === "preview" && phase.error && (
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-destructive">
             {phase.error.message}
             {phase.error.traceId && ` (참고: ${phase.error.traceId})`}
           </p>
@@ -262,7 +263,7 @@ export function ItineraryClient({
 
       <div className="space-y-2">
         {items.length < 2 && phase.status === "idle" && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             2개 이상 담아야 일정을 생성할 수 있어요
           </p>
         )}
@@ -270,6 +271,7 @@ export function ItineraryClient({
           disabled={phase.status === "loading" || items.length < 2}
           onClick={handleGenerate}
         >
+          <Icon name="wand" size={16} />
           일정 생성하기
         </Button>
       </div>

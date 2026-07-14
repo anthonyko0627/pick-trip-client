@@ -1,5 +1,5 @@
 import type { BasketItem, BasketPriority } from "@/types/basket";
-import { PRIORITY_LABELS } from "@/types/basket";
+import { PRIORITY_LABELS, PRIORITY_SELECTED_CLASSES } from "@/types/basket";
 import type { Region } from "@/types/region";
 import { REGION_LABELS } from "@/types/region";
 import type { CompanionCondition } from "@/types/travel-condition";
@@ -40,29 +40,29 @@ export function TripSummary({
   })).filter(({ items: groupItems }) => groupItems.length > 0);
 
   return (
-    <section className="rounded-lg border p-4">
-      <h2 className="text-lg font-bold">여행 요약</h2>
+    <section className="rounded-lg border border-border bg-card p-4">
+      <h2 className="text-lg font-bold text-foreground">여행 요약</h2>
       <dl className="mt-3 space-y-2 text-sm">
         <div>
-          <dt className="font-medium text-gray-700">지역</dt>
-          <dd>{regionText}</dd>
+          <dt className="font-medium text-muted-foreground">지역</dt>
+          <dd className="text-foreground">{regionText}</dd>
         </div>
         <div>
-          <dt className="font-medium text-gray-700">날짜</dt>
-          <dd>{formattedDate}</dd>
+          <dt className="font-medium text-muted-foreground">날짜</dt>
+          <dd className="text-foreground">{formattedDate}</dd>
         </div>
         <div>
-          <dt className="font-medium text-gray-700">기간</dt>
-          <dd>{duration}</dd>
+          <dt className="font-medium text-muted-foreground">기간</dt>
+          <dd className="text-foreground">{duration}</dd>
         </div>
         {companions.length > 0 && (
           <div>
-            <dt className="font-medium text-gray-700">동행 조건</dt>
+            <dt className="font-medium text-muted-foreground">동행 조건</dt>
             <dd className="mt-1 flex flex-wrap gap-1">
               {companions.map((c) => (
                 <span
                   key={c}
-                  className="rounded-full bg-gray-100 px-2 py-0.5 text-xs"
+                  className="rounded-full bg-muted px-2 py-0.5 text-xs text-foreground"
                 >
                   {COMPANION_CONDITION_LABELS[c]}
                 </span>
@@ -71,19 +71,28 @@ export function TripSummary({
           </div>
         )}
         <div>
-          <dt className="font-medium text-gray-700">담은 콘텐츠</dt>
+          <dt className="font-medium text-muted-foreground">담은 콘텐츠</dt>
           {items.length === 0 ? (
-            <dd className="text-gray-400">담은 콘텐츠가 없습니다</dd>
+            <dd className="text-muted-foreground">담은 콘텐츠가 없습니다</dd>
           ) : (
             <dd className="mt-1 space-y-2">
               {groupedItems.map(({ priority, items: groupItems }) => (
                 <div key={priority ?? "none"}>
-                  <span className="text-xs font-medium text-gray-500">
+                  <span
+                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                      priority
+                        ? PRIORITY_SELECTED_CLASSES[priority]
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
                     {priority ? PRIORITY_LABELS[priority] : "미분류"}
                   </span>
-                  <ul className="mt-0.5 space-y-0.5">
+                  <ul className="mt-1 space-y-0.5">
                     {groupItems.map((item) => (
-                      <li key={item.content.id} className="text-sm">
+                      <li
+                        key={item.content.id}
+                        className="text-sm text-foreground"
+                      >
                         {item.content.name}
                       </li>
                     ))}

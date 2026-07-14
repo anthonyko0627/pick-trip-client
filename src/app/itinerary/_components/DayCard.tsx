@@ -10,9 +10,11 @@ export function DayCard({ day }: DayCardProps) {
   const dayNumber = day.dayIndex + 1;
 
   return (
-    <div className="rounded-lg border p-4">
-      <h3 className="font-semibold">{dayNumber}일차</h3>
-      <div className="mt-2 divide-y">
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <h3 className="inline-block rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">
+        {dayNumber}일차
+      </h3>
+      <div className="mt-2 divide-y divide-border">
         {day.items.map((item) => (
           <PlaceItem key={item.itemId} item={item} />
         ))}
