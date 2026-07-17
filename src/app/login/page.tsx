@@ -35,6 +35,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       >
         카카오로 로그인
       </a>
+
+      <a
+        href={`/auth/google/start?next=${encodeURIComponent(next)}`}
+        className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-white text-sm font-semibold text-black/85"
+      >
+        구글로 로그인
+      </a>
     </main>
   );
 }

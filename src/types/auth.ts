@@ -2,6 +2,10 @@ export interface KakaoLoginRequest {
   authorizationCode: string;
 }
 
+export interface GoogleLoginRequest {
+  authorizationCode: string;
+}
+
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
