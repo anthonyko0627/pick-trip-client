@@ -1,3 +1,4 @@
+import axios from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   LoginResponse,
@@ -12,10 +13,14 @@ import {
   refreshAccessToken,
 } from "./authService";
 
-vi.mock("./apiClient");
+vi.mock("./apiClient", async (importOriginal) => {
+  const actual = await importOriginal<typeof apiClientModule>();
+  return { ...actual, apiFetch: vi.fn() };
+});
+vi.mock("axios");
 
 describe("loginWithKakao", () => {
-  const mockApiFetch = vi.mocked(apiClientModule.apiFetch);
+  const mockAxiosPost = vi.mocked(axios.post);
 
   const mockResponse: LoginResponse = {
     accessToken: "access-1",
@@ -27,16 +32,13 @@ describe("loginWithKakao", () => {
   });
 
   it("POST /api/v1/auth/login/kakao를 올바른 body로 호출하고 응답을 그대로 반환", async () => {
-    mockApiFetch.mockResolvedValueOnce(mockResponse);
+    mockAxiosPost.mockResolvedValueOnce({ data: mockResponse });
 
     const result = await loginWithKakao({ authorizationCode: "code-1" });
 
-    expect(mockApiFetch).toHaveBeenCalledWith(
-      "/api/v1/auth/login/kakao",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({ authorizationCode: "code-1" }),
-      }),
+    expect(mockAxiosPost).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/auth/login/kakao"),
+      { authorizationCode: "code-1" },
     );
     expect(result).toEqual(mockResponse);
   });
