@@ -1,0 +1,75 @@
+﻿export type TravelDuration = "DAY_TRIP" | "ONE_NIGHT" | "TWO_NIGHTS" | "CUSTOM";
+
+export type CompanionCondition =
+  | "WITH_KIDS"
+  | "WITH_PARENTS"
+  | "WHOLE_FAMILY"
+  | "LESS_WALKING"
+  | "NATURE_FOCUSED"
+  | "EXPERIENCE_FOCUSED"
+  | "FOOD_FOCUSED"
+  | "INDOOR_NEEDED";
+
+export const COMPANION_CONDITIONS: {
+  value: CompanionCondition;
+  label: string;
+}[] = [
+  { value: "WITH_KIDS", label: "아이와 함께" },
+  { value: "WITH_PARENTS", label: "부모님과 함께" },
+  { value: "WHOLE_FAMILY", label: "가족 전체" },
+  { value: "LESS_WALKING", label: "걷기 적게" },
+  { value: "NATURE_FOCUSED", label: "자연 위주" },
+  { value: "EXPERIENCE_FOCUSED", label: "체험 위주" },
+  { value: "FOOD_FOCUSED", label: "음식 위주" },
+  { value: "INDOOR_NEEDED", label: "실내 대안 필요" },
+];
+
+export const COMPANION_CONDITION_LABELS: Record<CompanionCondition, string> = {
+  WITH_KIDS: "아이와 함께",
+  WITH_PARENTS: "부모님과 함께",
+  WHOLE_FAMILY: "가족 전체",
+  LESS_WALKING: "걷기 적게",
+  NATURE_FOCUSED: "자연 위주",
+  EXPERIENCE_FOCUSED: "체험 위주",
+  FOOD_FOCUSED: "음식 위주",
+  INDOOR_NEEDED: "실내 대안 필요",
+};
+
+// 백엔드(UpdateBasketConditionsRequest)의 동행 조건 enum은 프론트 값과 이름이 다르다.
+// (WITH_KIDS→WITH_CHILD, INDOOR_NEEDED→INDOOR_ALTERNATIVE, 나머지는 동일)
+export type ServerCompanionCondition =
+  | "WITH_CHILD"
+  | "WITH_PARENTS"
+  | "WHOLE_FAMILY"
+  | "LESS_WALKING"
+  | "NATURE_FOCUSED"
+  | "EXPERIENCE_FOCUSED"
+  | "FOOD_FOCUSED"
+  | "INDOOR_ALTERNATIVE";
+
+export const COMPANION_CONDITION_TO_SERVER: Record<
+  CompanionCondition,
+  ServerCompanionCondition
+> = {
+  WITH_KIDS: "WITH_CHILD",
+  WITH_PARENTS: "WITH_PARENTS",
+  WHOLE_FAMILY: "WHOLE_FAMILY",
+  LESS_WALKING: "LESS_WALKING",
+  NATURE_FOCUSED: "NATURE_FOCUSED",
+  EXPERIENCE_FOCUSED: "EXPERIENCE_FOCUSED",
+  FOOD_FOCUSED: "FOOD_FOCUSED",
+  INDOOR_NEEDED: "INDOOR_ALTERNATIVE",
+};
+
+export interface DurationPreset {
+  value: TravelDuration;
+  label: string;
+  nights: number; // 0 = 당일치기, -1 = CUSTOM
+}
+
+export const DURATION_PRESETS: DurationPreset[] = [
+  { value: "DAY_TRIP", label: "당일치기", nights: 0 },
+  { value: "ONE_NIGHT", label: "1박 2일", nights: 1 },
+  { value: "TWO_NIGHTS", label: "2박 3일", nights: 2 },
+  { value: "CUSTOM", label: "직접 입력", nights: -1 },
+];
