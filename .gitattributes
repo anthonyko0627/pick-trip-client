@@ -1,3 +1,9 @@
+# 모든 텍스트 파일은 작업 디렉터리에서도 LF를 유지한다.
+# Windows에서 core.autocrlf=true로 체크아웃하면 CRLF로 변환되는데,
+# biome.json에 formatter.lineEnding 설정이 없어 Biome은 기본값 LF를 기대한다.
+# 그 결과 저장소의 모든 파일이 포맷 위반으로 잡히고 pre-commit 훅이 커밋을 막는다.
+* text=auto eol=lf
+
 # husky 훅은 sh로 실행되므로 항상 LF를 유지해야 한다 (CRLF면 Windows에서 실행 실패)
 .husky/** text eol=lf
 *.sh text eol=lf

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -133,7 +134,7 @@ export function ItineraryClient({
   const [phase, setPhase] = useState<ItineraryPhase>({ status: "idle" });
   const { items } = useBasket();
   const { add: addSavedItinerary } = useSavedItineraries();
-  const { accessToken } = useAuth();
+  const { runAuthed } = useAuth();
 
   const parsedRegions = regions.split(",").filter(Boolean) as Region[];
   const parsedNights = Number(nights) || 0;
@@ -142,100 +143,121 @@ export function ItineraryClient({
     .filter(Boolean) as CompanionCondition[];
   const loginNext = `/itinerary?${new URLSearchParams({ regions, startDate, nights, companions }).toString()}`;
 
-  async function handleGenerate() {
+  // 생성 시퀀스(조건 동기화 → 바구니 반영 → generate)를 runAuthed로 감싸,
+  // AUTH_REQUIRED가 나면 내부에서 토큰 재발급 후 1회 재시도한다.
+  const generateMutation = useMutation({
+    mutationFn: () =>
+      runAuthed(async (token) => {
+        // generate는 요청 바디를 받지 않고 서버에 저장된 바구니/조건을 읽어 생성하므로,
+        // 호출 전에 현재 바구니/조건을 서버에 반영한다.
+        await updateBasketConditions(
+          {
+            region: parsedRegions[0],
+            travelDate: startDate,
+            duration: parsedNights,
+            companions: parsedCompanions.map(
+              (c) => COMPANION_CONDITION_TO_SERVER[c],
+            ),
+          },
+          token,
+        );
+
+        for (const item of items) {
+          try {
+            await addBasketItem(
+              {
+                contentId: item.content.id,
+                priority:
+                  BASKET_PRIORITY_TO_SERVER[item.priority ?? "OPTIONAL"],
+                title: item.content.name,
+                ...(item.content.imageUrl
+                  ? { thumbnailUrl: item.content.imageUrl }
+                  : {}),
+              },
+              token,
+            );
+          } catch (err) {
+            const parsed = parseApiError(err);
+            if (parsed.code !== "BASKET_ITEM_DUPLICATE") throw err;
+          }
+        }
+
+        return generateItinerary(token);
+      }),
+  });
+
+  // 저장도 runAuthed로 감싼다. 재발급 후에도 AUTH_REQUIRED면 최종 실패로 취급한다.
+  const saveMutation = useMutation({
+    mutationFn: (request: SaveItineraryRequest) =>
+      runAuthed((token) => saveItinerary(request, token)),
+  });
+
+  function handleGenerate() {
     if (phase.status === "loading") return;
 
     setPhase({ status: "loading" });
 
-    try {
-      // generate는 요청 바디를 받지 않고 서버에 저장된 바구니/조건을 읽어 생성하므로,
-      // 호출 전에 현재 바구니/조건을 서버에 반영한다.
-      await updateBasketConditions(
-        {
-          region: parsedRegions[0],
-          travelDate: startDate,
-          duration: parsedNights,
-          companions: parsedCompanions.map(
-            (c) => COMPANION_CONDITION_TO_SERVER[c],
-          ),
-        },
-        accessToken ?? undefined,
-      );
-
-      for (const item of items) {
-        try {
-          await addBasketItem(
-            {
-              contentId: item.content.id,
-              priority: BASKET_PRIORITY_TO_SERVER[item.priority ?? "OPTIONAL"],
-              title: item.content.name,
-              ...(item.content.imageUrl
-                ? { thumbnailUrl: item.content.imageUrl }
-                : {}),
-            },
-            accessToken ?? undefined,
+    generateMutation.mutate(undefined, {
+      onSuccess: (data) => setPhase({ status: "preview", data }),
+      onError: (err) => {
+        const { message, code, traceId } = parseApiError(err);
+        // runAuthed가 이미 재발급+재시도를 1회 했으므로, 여기 도달한 AUTH_REQUIRED는
+        // 재발급까지 실패한 최종 상태다 → 로그인 안내 미리보기로 전환한다.
+        if (code === "AUTH_REQUIRED") {
+          const data = buildLoginPreviewItinerary(
+            items,
+            parsedRegions[0],
+            startDate,
+            parsedNights,
           );
-        } catch (err) {
-          const parsed = parseApiError(err);
-          if (parsed.code !== "BASKET_ITEM_DUPLICATE") throw err;
+          setPhase({ status: "loginPreview", data });
+          return;
         }
-      }
-
-      const data = await generateItinerary(accessToken ?? undefined);
-      setPhase({ status: "preview", data });
-    } catch (err) {
-      const { message, code, traceId } = parseApiError(err);
-      if (code === "AUTH_REQUIRED") {
-        const data = buildLoginPreviewItinerary(
-          items,
-          parsedRegions[0],
-          startDate,
-          parsedNights,
-        );
-        setPhase({ status: "loginPreview", data });
-        return;
-      }
-      setPhase({ status: "error", message, code, traceId });
-    }
+        setPhase({ status: "error", message, code, traceId });
+      },
+    });
   }
 
-  async function handleSave() {
+  function handleSave() {
     if (phase.status !== "preview") return;
     const previewData = phase.data;
 
     setPhase({ status: "saving", data: previewData });
 
-    try {
-      const request: SaveItineraryRequest = {
-        title: previewData.title,
-        region: previewData.region,
-        travelDate: previewData.travelDate,
-        duration: previewData.duration,
-        days: previewData.days.map((day) => ({
-          dayIndex: day.dayIndex,
-          items: day.items.map((item) => ({
-            contentId: item.contentId,
-            title: item.title,
-            order: item.order,
-            reason: item.reason,
-            pinned: item.pinned,
-          })),
+    const request: SaveItineraryRequest = {
+      title: previewData.title,
+      region: previewData.region,
+      travelDate: previewData.travelDate,
+      duration: previewData.duration,
+      days: previewData.days.map((day) => ({
+        dayIndex: day.dayIndex,
+        items: day.items.map((item) => ({
+          contentId: item.contentId,
+          title: item.title,
+          order: item.order,
+          reason: item.reason,
+          pinned: item.pinned,
         })),
-      };
-      const saved = await saveItinerary(request, accessToken ?? undefined);
-      addSavedItinerary({
-        itineraryId: saved.itineraryId,
-        title: saved.title,
-        region: saved.region,
-        travelDate: saved.travelDate,
-        duration: saved.duration,
-        savedAt: Date.now(),
-      });
-      setPhase({ status: "saved", data: saved });
-    } catch (err) {
-      const parsed = parseApiError(err);
-      setPhase({ status: "preview", data: previewData, error: parsed });
-    }
+      })),
+    };
+
+    saveMutation.mutate(request, {
+      onSuccess: (saved) => {
+        addSavedItinerary({
+          itineraryId: saved.itineraryId,
+          title: saved.title,
+          region: saved.region,
+          travelDate: saved.travelDate,
+          duration: saved.duration,
+          savedAt: Date.now(),
+        });
+        setPhase({ status: "saved", data: saved });
+      },
+      onError: (err) => {
+        const parsed = parseApiError(err);
+        setPhase({ status: "preview", data: previewData, error: parsed });
+      },
+    });
   }
 
   if (phase.status === "saved") {

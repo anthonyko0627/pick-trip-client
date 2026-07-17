@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/lib/errors";
 import * as contentServiceModule from "@/services/contentService";
 import { AlternativePlacePicker } from "./AlternativePlacePicker";
 
@@ -45,9 +46,7 @@ describe("AlternativePlacePicker", () => {
 
   it("조회 실패 시 에러 메시지를 표시한다", async () => {
     mockGetContents.mockRejectedValue(
-      new Error(
-        'API 500: {"code":"INTERNAL_ERROR","message":"조회에 실패했습니다."}',
-      ),
+      new ApiError(500, "조회에 실패했습니다.", "INTERNAL_ERROR"),
     );
 
     render(

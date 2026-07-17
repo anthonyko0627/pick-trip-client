@@ -1,4 +1,4 @@
-import { apiFetch } from "@/services/apiClient";
+import { apiClient } from "@/services/apiClient";
 import type {
   ShareCreateResponse,
   SharedItineraryResponse,
@@ -7,14 +7,17 @@ import type {
 export async function createShare(
   itineraryId: string,
 ): Promise<ShareCreateResponse> {
-  return apiFetch<ShareCreateResponse>(
+  const { data } = await apiClient.post<ShareCreateResponse>(
     `/api/v1/itineraries/${itineraryId}/share`,
-    { method: "POST" },
   );
+  return data;
 }
 
 export async function getSharedItinerary(
   token: string,
 ): Promise<SharedItineraryResponse> {
-  return apiFetch<SharedItineraryResponse>(`/api/v1/share/${token}`);
+  const { data } = await apiClient.get<SharedItineraryResponse>(
+    `/api/v1/share/${token}`,
+  );
+  return data;
 }

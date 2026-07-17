@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ApiError } from "@/lib/errors";
 import * as itineraryServiceModule from "@/services/itineraryService";
 import type { Content } from "@/types/content";
 import type { Day, ItineraryResponse } from "@/types/itinerary";
@@ -192,9 +193,7 @@ describe("useItineraryEditor", () => {
 
   it("save 실패 시 에러를 노출하고 로컬 편집 내용을 유지한다", async () => {
     mockModifyItinerary.mockRejectedValue(
-      new Error(
-        'API 500: {"code":"INTERNAL_ERROR","message":"저장에 실패했습니다."}',
-      ),
+      new ApiError(500, "저장에 실패했습니다.", "INTERNAL_ERROR"),
     );
 
     const { result } = setup();

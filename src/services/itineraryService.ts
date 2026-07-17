@@ -1,4 +1,4 @@
-import { apiFetch } from "@/services/apiClient";
+import { apiClient } from "@/services/apiClient";
 import type {
   ItineraryGenerateResponse,
   ItineraryResponse,
@@ -14,35 +14,42 @@ function authHeaders(accessToken?: string) {
 export async function generateItinerary(
   accessToken?: string,
 ): Promise<ItineraryGenerateResponse> {
-  return apiFetch<ItineraryGenerateResponse>("/api/v1/itineraries/generate", {
-    method: "POST",
-    headers: authHeaders(accessToken),
-  });
+  const { data } = await apiClient.post<ItineraryGenerateResponse>(
+    "/api/v1/itineraries/generate",
+    undefined,
+    { headers: authHeaders(accessToken) },
+  );
+  return data;
 }
 
 export async function saveItinerary(
   request: SaveItineraryRequest,
   accessToken?: string,
 ): Promise<ItineraryResponse> {
-  return apiFetch<ItineraryResponse>("/api/v1/itineraries", {
-    method: "POST",
-    body: JSON.stringify(request),
-    headers: authHeaders(accessToken),
-  });
+  const { data } = await apiClient.post<ItineraryResponse>(
+    "/api/v1/itineraries",
+    request,
+    { headers: authHeaders(accessToken) },
+  );
+  return data;
 }
 
 export async function getItinerary(
   itineraryId: string,
 ): Promise<ItineraryResponse> {
-  return apiFetch<ItineraryResponse>(`/api/v1/itineraries/${itineraryId}`);
+  const { data } = await apiClient.get<ItineraryResponse>(
+    `/api/v1/itineraries/${itineraryId}`,
+  );
+  return data;
 }
 
 export async function modifyItinerary(
   itineraryId: string,
   request: SaveItineraryRequest,
 ): Promise<ItineraryResponse> {
-  return apiFetch<ItineraryResponse>(`/api/v1/itineraries/${itineraryId}`, {
-    method: "PATCH",
-    body: JSON.stringify(request),
-  });
+  const { data } = await apiClient.patch<ItineraryResponse>(
+    `/api/v1/itineraries/${itineraryId}`,
+    request,
+  );
+  return data;
 }

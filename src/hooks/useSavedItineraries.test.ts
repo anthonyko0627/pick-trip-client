@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { useSavedItinerariesStore } from "@/stores/savedItinerariesStore";
 import type { SavedItinerarySummary } from "@/types/itinerary";
 
 import { useSavedItineraries } from "./useSavedItineraries";
@@ -26,6 +27,8 @@ const summary2: SavedItinerarySummary = {
 describe("useSavedItineraries", () => {
   beforeEach(() => {
     localStorage.clear();
+    // 전역 스토어는 테스트 간 상태가 누수되므로 초기 상태로 리셋한다.
+    useSavedItinerariesStore.setState({ items: [], hydrated: false });
   });
 
   it("초기 상태는 빈 배열이다", () => {

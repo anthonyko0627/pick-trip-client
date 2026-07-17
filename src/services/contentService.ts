@@ -1,7 +1,7 @@
 import type { Content, ContentDetail, ContentsResponse } from "@/types/content";
 import type { Region } from "@/types/region";
 
-import { apiFetch } from "./apiClient";
+import { apiClient } from "./apiClient";
 
 interface GetContentsParams {
   regions: string[];
@@ -50,9 +50,9 @@ export async function getContents(
         query.set("companions", params.companions.join(","));
       }
 
-      return apiFetch<RawContentsResponse>(
-        `/api/v1/contents?${query.toString()}`,
-      );
+      return apiClient
+        .get<RawContentsResponse>(`/api/v1/contents?${query.toString()}`)
+        .then((res) => res.data);
     }),
   );
 
@@ -65,5 +65,6 @@ export async function getContents(
 }
 
 export async function getContentById(id: string): Promise<ContentDetail> {
-  return apiFetch<ContentDetail>(`/api/v1/contents/${id}`);
+  const { data } = await apiClient.get<ContentDetail>(`/api/v1/contents/${id}`);
+  return data;
 }

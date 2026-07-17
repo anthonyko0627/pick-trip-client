@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
-import { AuthProvider } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { Providers } from "./providers";
 
 const notoSansKR = Noto_Sans_KR({
   subsets: ["latin"],
@@ -44,10 +44,10 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
+        <Providers>
           <Header />
           {children}
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

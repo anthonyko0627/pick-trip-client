@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/lib/errors";
 import type {
   ItineraryGenerateResponse,
   ItineraryResponse,
   SaveItineraryRequest,
 } from "@/types/itinerary";
-import * as apiClientModule from "./apiClient";
+import { apiClient } from "./apiClient";
 import {
   generateItinerary,
   getItinerary,
@@ -12,11 +13,21 @@ import {
   saveItinerary,
 } from "./itineraryService";
 
-vi.mock("./apiClient");
+vi.mock("./apiClient", () => ({
+  apiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
+const mockGet = vi.mocked(apiClient.get);
+const mockPost = vi.mocked(apiClient.post);
+const mockPatch = vi.mocked(apiClient.patch);
 
 describe("generateItinerary", () => {
-  const mockApiFetch = vi.mocked(apiClientModule.apiFetch);
-
   const mockResponse: ItineraryGenerateResponse = {
     title: "하동 1박 2일 여행",
     region: "HADONG",
@@ -45,41 +56,43 @@ describe("generateItinerary", () => {
   });
 
   it("요청 바디 없이 POST /api/v1/itineraries/generate를 호출", async () => {
-    mockApiFetch.mockResolvedValueOnce(mockResponse);
+    mockPost.mockResolvedValueOnce({ data: mockResponse });
 
     const result = await generateItinerary();
 
-    expect(mockApiFetch).toHaveBeenCalledWith(
+    expect(mockPost).toHaveBeenCalledWith(
       "/api/v1/itineraries/generate",
-      expect.objectContaining({ method: "POST" }),
+      undefined,
+      { headers: undefined },
     );
     expect(result).toEqual(mockResponse);
   });
 
-  it("오류 전파: apiFetch가 throw 하면 오류를 그대로 전파", async () => {
-    const testError = new Error('API 401: {"code":"AUTH_REQUIRED"}');
-    mockApiFetch.mockRejectedValueOnce(testError);
+  it("오류 전파: apiClient가 throw 하면 오류를 그대로 전파", async () => {
+    const testError = new ApiError(
+      408,
+      "일정 생성에 실패했습니다. 다시 시도해주세요.",
+      "ITINERARY_GENERATION_TIMEOUT",
+    );
+    mockPost.mockRejectedValueOnce(testError);
 
     await expect(generateItinerary()).rejects.toThrow(testError);
   });
 
   it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
-    mockApiFetch.mockResolvedValueOnce(mockResponse);
+    mockPost.mockResolvedValueOnce({ data: mockResponse });
 
     await generateItinerary("access-1");
 
-    expect(mockApiFetch).toHaveBeenCalledWith(
+    expect(mockPost).toHaveBeenCalledWith(
       "/api/v1/itineraries/generate",
-      expect.objectContaining({
-        headers: { Authorization: "Bearer access-1" },
-      }),
+      undefined,
+      { headers: { Authorization: "Bearer access-1" } },
     );
   });
 });
 
 describe("saveItinerary", () => {
-  const mockApiFetch = vi.mocked(apiClientModule.apiFetch);
-
   const mockRequest: SaveItineraryRequest = {
     title: "하동 1박 2일 여행",
     region: "HADONG",
@@ -123,37 +136,28 @@ describe("saveItinerary", () => {
   });
 
   it("POST /api/v1/itineraries를 올바른 body로 호출하고 응답을 그대로 반환", async () => {
-    mockApiFetch.mockResolvedValueOnce(mockResponse);
+    mockPost.mockResolvedValueOnce({ data: mockResponse });
 
     const result = await saveItinerary(mockRequest);
 
-    expect(mockApiFetch).toHaveBeenCalledWith(
-      "/api/v1/itineraries",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify(mockRequest),
-      }),
-    );
+    expect(mockPost).toHaveBeenCalledWith("/api/v1/itineraries", mockRequest, {
+      headers: undefined,
+    });
     expect(result).toEqual(mockResponse);
   });
 
   it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
-    mockApiFetch.mockResolvedValueOnce(mockResponse);
+    mockPost.mockResolvedValueOnce({ data: mockResponse });
 
     await saveItinerary(mockRequest, "access-1");
 
-    expect(mockApiFetch).toHaveBeenCalledWith(
-      "/api/v1/itineraries",
-      expect.objectContaining({
-        headers: { Authorization: "Bearer access-1" },
-      }),
-    );
+    expect(mockPost).toHaveBeenCalledWith("/api/v1/itineraries", mockRequest, {
+      headers: { Authorization: "Bearer access-1" },
+    });
   });
 });
 
 describe("getItinerary", () => {
-  const mockApiFetch = vi.mocked(apiClientModule.apiFetch);
-
   const mockResponse: ItineraryResponse = {
     itineraryId: "itinerary-1",
     title: "하동 1박 2일 여행",
@@ -184,29 +188,27 @@ describe("getItinerary", () => {
   });
 
   it("GET /api/v1/itineraries/{itineraryId}를 호출하고 응답을 그대로 반환", async () => {
-    mockApiFetch.mockResolvedValueOnce(mockResponse);
+    mockGet.mockResolvedValueOnce({ data: mockResponse });
 
     const result = await getItinerary("itinerary-1");
 
-    expect(mockApiFetch).toHaveBeenCalledWith(
-      "/api/v1/itineraries/itinerary-1",
-    );
+    expect(mockGet).toHaveBeenCalledWith("/api/v1/itineraries/itinerary-1");
     expect(result).toEqual(mockResponse);
   });
 
-  it("오류 전파: apiFetch가 throw 하면 오류를 그대로 전파", async () => {
-    const testError = new Error(
-      'API 404: {"code":"ITINERARY_NOT_FOUND","message":"일정을 찾을 수 없습니다."}',
+  it("오류 전파: apiClient가 throw 하면 오류를 그대로 전파", async () => {
+    const testError = new ApiError(
+      404,
+      "일정을 찾을 수 없습니다.",
+      "ITINERARY_NOT_FOUND",
     );
-    mockApiFetch.mockRejectedValueOnce(testError);
+    mockGet.mockRejectedValueOnce(testError);
 
     await expect(getItinerary("missing-id")).rejects.toThrow(testError);
   });
 });
 
 describe("modifyItinerary", () => {
-  const mockApiFetch = vi.mocked(apiClientModule.apiFetch);
-
   const mockRequest: SaveItineraryRequest = {
     title: "하동 1박 2일 여행(수정됨)",
     region: "HADONG",
@@ -250,23 +252,24 @@ describe("modifyItinerary", () => {
   });
 
   it("PATCH /api/v1/itineraries/{itineraryId}를 올바른 body로 호출하고 응답을 그대로 반환", async () => {
-    mockApiFetch.mockResolvedValueOnce(mockResponse);
+    mockPatch.mockResolvedValueOnce({ data: mockResponse });
 
     const result = await modifyItinerary("itinerary-1", mockRequest);
 
-    expect(mockApiFetch).toHaveBeenCalledWith(
+    expect(mockPatch).toHaveBeenCalledWith(
       "/api/v1/itineraries/itinerary-1",
-      expect.objectContaining({
-        method: "PATCH",
-        body: JSON.stringify(mockRequest),
-      }),
+      mockRequest,
     );
     expect(result).toEqual(mockResponse);
   });
 
-  it("오류 전파: apiFetch가 throw 하면 오류를 그대로 전파", async () => {
-    const testError = new Error('API 401: {"code":"AUTH_REQUIRED"}');
-    mockApiFetch.mockRejectedValueOnce(testError);
+  it("오류 전파: apiClient가 throw 하면 오류를 그대로 전파", async () => {
+    const testError = new ApiError(
+      401,
+      "로그인이 필요합니다.",
+      "AUTH_REQUIRED",
+    );
+    mockPatch.mockRejectedValueOnce(testError);
 
     await expect(modifyItinerary("itinerary-1", mockRequest)).rejects.toThrow(
       testError,

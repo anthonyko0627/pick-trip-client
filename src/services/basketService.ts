@@ -1,4 +1,4 @@
-import { apiFetch } from "@/services/apiClient";
+import { apiClient } from "@/services/apiClient";
 import type {
   AddBasketItemRequest,
   BasketItemResponse,
@@ -14,20 +14,22 @@ export async function updateBasketConditions(
   request: UpdateBasketConditionsRequest,
   accessToken?: string,
 ): Promise<BasketResponse> {
-  return apiFetch<BasketResponse>("/api/v1/baskets/conditions", {
-    method: "PUT",
-    body: JSON.stringify(request),
-    headers: authHeaders(accessToken),
-  });
+  const { data } = await apiClient.put<BasketResponse>(
+    "/api/v1/baskets/conditions",
+    request,
+    { headers: authHeaders(accessToken) },
+  );
+  return data;
 }
 
 export async function addBasketItem(
   request: AddBasketItemRequest,
   accessToken?: string,
 ): Promise<BasketItemResponse> {
-  return apiFetch<BasketItemResponse>("/api/v1/baskets/items", {
-    method: "POST",
-    body: JSON.stringify(request),
-    headers: authHeaders(accessToken),
-  });
+  const { data } = await apiClient.post<BasketItemResponse>(
+    "/api/v1/baskets/items",
+    request,
+    { headers: authHeaders(accessToken) },
+  );
+  return data;
 }

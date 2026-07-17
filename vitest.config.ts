@@ -37,7 +37,12 @@ export default defineConfig({
         statements: 60,
         branches: 60,
         // 회귀 위험이 큰 로직 레이어는 더 엄격하게 건다.
-        "src/lib/**": { lines: 80, functions: 80, statements: 80, branches: 70 },
+        "src/lib/**": {
+          lines: 80,
+          functions: 80,
+          statements: 80,
+          branches: 70,
+        },
         "src/services/**": {
           lines: 80,
           functions: 80,

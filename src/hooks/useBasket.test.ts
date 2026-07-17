@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { useBasketStore } from "@/stores/basketStore";
 import type { Content } from "@/types/content";
 
 import { useBasket } from "./useBasket";
@@ -30,6 +31,8 @@ const stub2: Content = {
 describe("useBasket", () => {
   beforeEach(() => {
     localStorage.clear();
+    // 전역 스토어는 테스트 간 상태가 누수되므로 초기 상태로 리셋한다.
+    useBasketStore.setState({ items: [], hydrated: false });
   });
 
   it("초기 상태는 빈 배열이다", () => {

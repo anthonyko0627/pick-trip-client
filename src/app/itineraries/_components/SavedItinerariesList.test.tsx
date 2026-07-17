@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/lib/errors";
 import * as itineraryServiceModule from "@/services/itineraryService";
+import { useSavedItinerariesStore } from "@/stores/savedItinerariesStore";
 import type {
   ItineraryResponse,
   SavedItinerarySummary,
@@ -55,6 +57,9 @@ describe("SavedItinerariesList", () => {
 
   beforeEach(() => {
     localStorage.clear();
+    // 전역 Zustand 스토어는 테스트 간 유지되므로, 매 테스트마다 초기화해
+    // hydrated 플래그로 인해 새 시드가 무시되는 것을 막는다.
+    useSavedItinerariesStore.setState({ items: [], hydrated: false });
     vi.clearAllMocks();
   });
 
@@ -100,9 +105,7 @@ describe("SavedItinerariesList", () => {
   it("상세 조회 실패 시 에러 메시지와 재시도 버튼을 표시한다", async () => {
     seedSaved([summary]);
     mockGetItinerary.mockRejectedValue(
-      new Error(
-        'API 404: {"code":"ITINERARY_NOT_FOUND","message":"일정을 찾을 수 없습니다."}',
-      ),
+      new ApiError(404, "일정을 찾을 수 없습니다.", "ITINERARY_NOT_FOUND"),
     );
 
     render(<SavedItinerariesList />);

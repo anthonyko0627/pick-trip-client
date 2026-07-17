@@ -1,66 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-import type { BasketItem, BasketPriority } from "@/types/basket";
-import type { Content } from "@/types/content";
+import { useBasketStore } from "@/stores/basketStore";
 
-const STORAGE_KEY = "pick-trip-basket";
-
+// 전역 바구니 스토어를 구독하는 얇은 훅. 여러 컴포넌트 인스턴스가 상태를 공유한다.
 export function useBasket() {
-  const [items, setItems] = useState<BasketItem[]>([]);
+  const hydrate = useBasketStore((s) => s.hydrate);
 
+  // 마운트 시 1회 localStorage에서 로드한다(이미 hydrated면 스토어가 무시).
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed: BasketItem[] = JSON.parse(stored);
-        setItems(parsed.map((i) => ({ ...i, priority: i.priority ?? null })));
-      }
-    } catch {
-      // 손상된 데이터는 무시
-    }
-  }, []);
+    hydrate();
+  }, [hydrate]);
 
-  const save = (next: BasketItem[]) => {
-    setItems(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  };
-
-  const add = (content: Content) => {
-    setItems((prev) => {
-      if (prev.some((i) => i.content.id === content.id)) return prev;
-      const next = [...prev, { content, addedAt: Date.now(), priority: null }];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const setPriority = (contentId: string, priority: BasketPriority | null) => {
-    setItems((prev) => {
-      const next = prev.map((i) =>
-        i.content.id === contentId ? { ...i, priority } : i,
-      );
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const remove = (contentId: string) => {
-    setItems((prev) => {
-      const next = prev.filter((i) => i.content.id !== contentId);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const isInBasket = (contentId: string) =>
-    items.some((i) => i.content.id === contentId);
-
-  const clear = () => {
-    setItems([]);
-    localStorage.removeItem(STORAGE_KEY);
-  };
+  const items = useBasketStore((s) => s.items);
+  const add = useBasketStore((s) => s.add);
+  const remove = useBasketStore((s) => s.remove);
+  const isInBasket = useBasketStore((s) => s.isInBasket);
+  const setPriority = useBasketStore((s) => s.setPriority);
+  const clear = useBasketStore((s) => s.clear);
+  const save = useBasketStore((s) => s.save);
 
   return { items, add, remove, isInBasket, setPriority, clear, save };
 }

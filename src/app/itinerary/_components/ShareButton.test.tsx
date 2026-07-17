@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/lib/errors";
 import * as shareServiceModule from "@/services/shareService";
 import { ShareButton } from "./ShareButton";
 
@@ -66,9 +67,7 @@ describe("ShareButton", () => {
 
   it("생성 실패 시 에러 메시지와 재시도 버튼을 표시한다", async () => {
     mockCreateShare.mockRejectedValue(
-      new Error(
-        'API 500: {"code":"INTERNAL_ERROR","message":"공유 링크 생성에 실패했습니다."}',
-      ),
+      new ApiError(500, "공유 링크 생성에 실패했습니다.", "INTERNAL_ERROR"),
     );
 
     render(<ShareButton itineraryId="itinerary-1" />);
@@ -85,9 +84,7 @@ describe("ShareButton", () => {
   it("재시도 버튼 클릭 시 다시 createShare를 호출한다", async () => {
     mockCreateShare
       .mockRejectedValueOnce(
-        new Error(
-          'API 500: {"code":"INTERNAL_ERROR","message":"공유 링크 생성에 실패했습니다."}',
-        ),
+        new ApiError(500, "공유 링크 생성에 실패했습니다.", "INTERNAL_ERROR"),
       )
       .mockResolvedValueOnce({
         token: "share-token-1",

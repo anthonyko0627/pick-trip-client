@@ -1,48 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-import type { SavedItinerarySummary } from "@/types/itinerary";
+import { useSavedItinerariesStore } from "@/stores/savedItinerariesStore";
 
-const STORAGE_KEY = "pick-trip-saved-itineraries";
-
-function sortByRecent(items: SavedItinerarySummary[]) {
-  return [...items].sort((a, b) => b.savedAt - a.savedAt);
-}
-
+// 전역 저장 일정 스토어를 구독하는 얇은 훅. 여러 컴포넌트 인스턴스가 상태를 공유한다.
 export function useSavedItineraries() {
-  const [items, setItems] = useState<SavedItinerarySummary[]>([]);
+  const hydrate = useSavedItinerariesStore((s) => s.hydrate);
 
+  // 마운트 시 1회 localStorage에서 로드한다(이미 hydrated면 스토어가 무시).
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed: SavedItinerarySummary[] = JSON.parse(stored);
-        setItems(sortByRecent(parsed));
-      }
-    } catch {
-      // 손상된 데이터는 무시
-    }
-  }, []);
+    hydrate();
+  }, [hydrate]);
 
-  const add = (summary: SavedItinerarySummary) => {
-    setItems((prev) => {
-      const next = sortByRecent([
-        summary,
-        ...prev.filter((i) => i.itineraryId !== summary.itineraryId),
-      ]);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const remove = (itineraryId: string) => {
-    setItems((prev) => {
-      const next = prev.filter((i) => i.itineraryId !== itineraryId);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
+  const items = useSavedItinerariesStore((s) => s.items);
+  const add = useSavedItinerariesStore((s) => s.add);
+  const remove = useSavedItinerariesStore((s) => s.remove);
 
   return { items, add, remove };
 }
