@@ -38,7 +38,7 @@ export default async function ContentsPage({
 
   if (error) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-10">
         <p className="py-16 text-center text-sm text-destructive">{error}</p>
       </main>
     );
@@ -52,7 +52,7 @@ export default async function ContentsPage({
   }).toString()}`;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
+    <main className="mx-auto max-w-7xl px-4 py-10">
       <ContentGrid initialContents={contents} itineraryHref={itineraryHref} />
     </main>
   );
