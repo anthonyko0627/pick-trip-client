@@ -108,14 +108,97 @@ describe("getContentById (apiClient 이관)", () => {
     vi.clearAllMocks();
   });
 
-  it("GET /api/v1/contents/{id}를 호출하고 응답을 그대로 반환한다", async () => {
-    const detail = { id: "c-1", name: "쌍계사" };
-    mockGet.mockResolvedValueOnce({ data: detail });
+  it("GET /api/v1/contents/{id}를 호출하고 백엔드 응답을 ContentDetail 계약으로 변환한다", async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        contentId: "c-1",
+        title: "쌍계사",
+        address: "하동군",
+        summary: "천년 고찰",
+        useTime: "상시 개방",
+        restDate: "연중무휴",
+        parking: "불가능",
+        stayDuration: "약 2시간",
+        reservationRequired: false,
+        dataSource: "TourAPI",
+        images: [
+          { imageUrl: "https://example.com/1.jpg", title: "1" },
+          { imageUrl: "https://example.com/2.jpg", title: "2" },
+        ],
+        category: "CULTURE",
+        indoor: true,
+        region: "HADONG",
+      },
+    });
 
     const result = await getContentById("c-1");
 
     expect(mockGet).toHaveBeenCalledWith("/api/v1/contents/c-1");
-    expect(result).toEqual(detail);
+    expect(result).toEqual({
+      id: "c-1",
+      name: "쌍계사",
+      region: "HADONG",
+      category: "CULTURE",
+      imageUrl: "https://example.com/1.jpg",
+      address: "하동군",
+      summary: "천년 고찰",
+      indoor: true,
+      operatingHours: "상시 개방",
+      closedDay: "연중무휴",
+      parking: false,
+      stayDuration: "약 2시간",
+      reservationRequired: false,
+      dataSource: "TourAPI",
+      imageUrls: ["https://example.com/2.jpg"],
+    });
+  });
+
+  it("parking에 '불가'가 없으면 true로 변환한다", async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        contentId: "c-1",
+        title: "쌍계사",
+        address: "하동군",
+        summary: "천년 고찰",
+        useTime: null,
+        restDate: null,
+        parking: "가능",
+        stayDuration: null,
+        reservationRequired: null,
+        dataSource: null,
+        images: [],
+        region: "HADONG",
+      },
+    });
+
+    const result = await getContentById("c-1");
+
+    expect(result.parking).toBe(true);
+    expect(result.imageUrl).toBeNull();
+    expect(result.imageUrls).toEqual([]);
+  });
+
+  it("parking이 없으면 null로 변환한다", async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        contentId: "c-1",
+        title: "쌍계사",
+        address: "하동군",
+        summary: "천년 고찰",
+        useTime: null,
+        restDate: null,
+        parking: null,
+        stayDuration: null,
+        reservationRequired: null,
+        dataSource: null,
+        images: [],
+        region: "HADONG",
+      },
+    });
+
+    const result = await getContentById("c-1");
+
+    expect(result.parking).toBeNull();
   });
 
   it("API가 오류를 반환하면 그대로 throw한다", async () => {
