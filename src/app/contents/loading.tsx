@@ -1,6 +1,6 @@
 export default function ContentsLoading() {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl px-4 py-10">
       <div className="mb-6 h-10 w-full animate-pulse rounded-lg bg-muted" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {["a", "b", "c", "d", "e", "f"].map((k) => (
