@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function SelectPage() {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
+    <main className="mx-auto w-full max-w-2xl px-4 py-12">
       <div className="mb-8">
         <p className="mb-1.5 text-xs font-semibold tracking-wide text-primary uppercase">
           Step 1 · 지역 선택

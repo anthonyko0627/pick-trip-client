@@ -4,13 +4,46 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useBasket } from "@/hooks/useBasket";
-import type { Content, ContentCategory } from "@/types/content";
+import {
+  CATEGORY_LABELS,
+  CONTENT_CATEGORIES,
+  type Content,
+  type ContentCategory,
+} from "@/types/content";
 
 import { BasketDrawer } from "./BasketDrawer";
 import { BasketFab } from "./BasketFab";
 import { BasketPanel } from "./BasketPanel";
 import { ContentCard } from "./ContentCard";
 import { ContentFilter } from "./ContentFilter";
+
+const UNCATEGORIZED_LABEL = "기타";
+
+interface ContentGroup {
+  key: string;
+  label: string;
+  items: Content[];
+}
+
+// CONTENT_CATEGORIES 순서대로 묶고, category가 없는 콘텐츠는 마지막에 "기타"로 모은다.
+function groupByCategory(contents: Content[]): ContentGroup[] {
+  const groups: ContentGroup[] = CONTENT_CATEGORIES.map((category) => ({
+    key: category,
+    label: CATEGORY_LABELS[category],
+    items: contents.filter((c) => c.category === category),
+  })).filter((group) => group.items.length > 0);
+
+  const uncategorized = contents.filter((c) => c.category === undefined);
+  if (uncategorized.length > 0) {
+    groups.push({
+      key: "uncategorized",
+      label: UNCATEGORIZED_LABEL,
+      items: uncategorized,
+    });
+  }
+
+  return groups;
+}
 
 interface ContentGridProps {
   initialContents: Content[];
@@ -62,7 +95,7 @@ export function ContentGrid({
             />
 
             {filtered.length === 0 ? (
-              <p className="py-16 text-center text-sm text-muted-foreground">
+              <p className="flex min-h-[60vh] items-center justify-center text-center text-sm text-muted-foreground">
                 조건에 맞는 콘텐츠가 없습니다
               </p>
             ) : (
@@ -70,18 +103,30 @@ export function ContentGrid({
                 <p className="text-sm text-muted-foreground">
                   {filtered.length}개 결과
                 </p>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {filtered.map((content) => (
-                    <ContentCard
-                      key={content.id}
-                      content={content}
-                      isInBasket={isInBasket(content.id)}
-                      onToggleBasket={() =>
-                        isInBasket(content.id)
-                          ? remove(content.id)
-                          : add(content)
-                      }
-                    />
+                <div className="flex flex-col gap-8">
+                  {groupByCategory(filtered).map((group) => (
+                    <section key={group.key}>
+                      <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-foreground">
+                        {group.label}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          {group.items.length}개
+                        </span>
+                      </h2>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {group.items.map((content) => (
+                          <ContentCard
+                            key={content.id}
+                            content={content}
+                            isInBasket={isInBasket(content.id)}
+                            onToggleBasket={() =>
+                              isInBasket(content.id)
+                                ? remove(content.id)
+                                : add(content)
+                            }
+                          />
+                        ))}
+                      </div>
+                    </section>
                   ))}
                 </div>
               </div>

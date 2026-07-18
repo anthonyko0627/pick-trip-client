@@ -2,7 +2,7 @@
 // 덮어, 실제 상세 화면과 스켈레톤의 크기 비율이 로딩 전후로 어긋나지 않게 맞춘다.
 export default function ContentDetailLoading() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6" aria-hidden="true">
+    <div className="mx-auto w-full max-w-2xl px-4 py-6" aria-hidden="true">
       <div className="mb-4 w-16 animate-pulse rounded bg-muted text-sm text-transparent">
         ← 목록으로
       </div>

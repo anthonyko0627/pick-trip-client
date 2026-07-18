@@ -34,7 +34,7 @@ function ContentCardSkeleton() {
 
 export default function ContentsLoading() {
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10">
+    <main className="mx-auto w-full max-w-7xl px-4 py-10">
       <div className="flex gap-6">
         <div className="min-w-0 flex-1">
           <div className="mb-6 h-10 w-full animate-pulse rounded-lg bg-muted" />
