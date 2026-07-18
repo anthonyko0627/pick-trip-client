@@ -30,7 +30,15 @@ describe("updateBasketConditions", () => {
     companions: ["WITH_CHILD"],
   };
 
-  const mockResponse: BasketResponse = {
+  // 백엔드 원본 응답: duration은 일수(박 수+1) 기준
+  const rawServerResponse: BasketResponse = {
+    basketId: "basket-1",
+    conditions: { ...mockRequest, duration: 2 },
+    items: [],
+  };
+
+  // 서비스가 반환하는 값: duration은 박 수로 변환된 상태
+  const expectedResult: BasketResponse = {
     basketId: "basket-1",
     conditions: mockRequest,
     items: [],
@@ -40,27 +48,27 @@ describe("updateBasketConditions", () => {
     vi.clearAllMocks();
   });
 
-  it("PUT /api/v1/baskets/conditions를 올바른 body로 호출하고 응답을 그대로 반환", async () => {
-    mockPut.mockResolvedValueOnce({ data: mockResponse });
+  it("PUT /api/v1/baskets/conditions를 호출하며 duration을 박 수+1(일수)로 변환하고, 응답 duration은 다시 박 수로 변환", async () => {
+    mockPut.mockResolvedValueOnce({ data: rawServerResponse });
 
     const result = await updateBasketConditions(mockRequest);
 
     expect(mockPut).toHaveBeenCalledWith(
       "/api/v1/baskets/conditions",
-      mockRequest,
+      { ...mockRequest, duration: 2 },
       { headers: undefined },
     );
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual(expectedResult);
   });
 
   it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
-    mockPut.mockResolvedValueOnce({ data: mockResponse });
+    mockPut.mockResolvedValueOnce({ data: rawServerResponse });
 
     await updateBasketConditions(mockRequest, "access-1");
 
     expect(mockPut).toHaveBeenCalledWith(
       "/api/v1/baskets/conditions",
-      mockRequest,
+      { ...mockRequest, duration: 2 },
       { headers: { Authorization: "Bearer access-1" } },
     );
   });

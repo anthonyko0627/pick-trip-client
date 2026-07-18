@@ -28,11 +28,12 @@ const mockPost = vi.mocked(apiClient.post);
 const mockPatch = vi.mocked(apiClient.patch);
 
 describe("generateItinerary", () => {
-  const mockResponse: ItineraryGenerateResponse = {
+  // 백엔드 원본 응답: duration은 일수(박 수+1) 기준
+  const rawServerResponse: ItineraryGenerateResponse = {
     title: "하동 1박 2일 여행",
     region: "HADONG",
     travelDate: "2025-01-15",
-    duration: 1,
+    duration: 2,
     days: [
       {
         dayId: "day-1",
@@ -51,12 +52,17 @@ describe("generateItinerary", () => {
     ],
   };
 
+  const expectedResult: ItineraryGenerateResponse = {
+    ...rawServerResponse,
+    duration: 1,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("요청 바디 없이 POST /api/v1/itineraries/generate를 호출", async () => {
-    mockPost.mockResolvedValueOnce({ data: mockResponse });
+  it("요청 바디 없이 POST /api/v1/itineraries/generate를 호출하고, 응답 duration을 박 수로 변환", async () => {
+    mockPost.mockResolvedValueOnce({ data: rawServerResponse });
 
     const result = await generateItinerary();
 
@@ -65,7 +71,7 @@ describe("generateItinerary", () => {
       undefined,
       { headers: undefined },
     );
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual(expectedResult);
   });
 
   it("오류 전파: apiClient가 throw 하면 오류를 그대로 전파", async () => {
@@ -80,7 +86,7 @@ describe("generateItinerary", () => {
   });
 
   it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
-    mockPost.mockResolvedValueOnce({ data: mockResponse });
+    mockPost.mockResolvedValueOnce({ data: rawServerResponse });
 
     await generateItinerary("access-1");
 
@@ -106,12 +112,13 @@ describe("saveItinerary", () => {
     ],
   };
 
-  const mockResponse: ItineraryResponse = {
+  // 백엔드 원본 응답: duration은 일수(박 수+1) 기준
+  const rawServerResponse: ItineraryResponse = {
     itineraryId: "itinerary-1",
     title: mockRequest.title,
     region: mockRequest.region,
     travelDate: mockRequest.travelDate,
-    duration: mockRequest.duration,
+    duration: mockRequest.duration + 1,
     lastModifiedAt: "2025-01-15T10:00:00Z",
     days: [
       {
@@ -131,39 +138,49 @@ describe("saveItinerary", () => {
     ],
   };
 
+  const expectedResult: ItineraryResponse = {
+    ...rawServerResponse,
+    duration: mockRequest.duration,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("POST /api/v1/itineraries를 올바른 body로 호출하고 응답을 그대로 반환", async () => {
-    mockPost.mockResolvedValueOnce({ data: mockResponse });
+  it("POST /api/v1/itineraries를 호출하며 duration을 박 수+1(일수)로 변환하고, 응답 duration은 다시 박 수로 변환", async () => {
+    mockPost.mockResolvedValueOnce({ data: rawServerResponse });
 
     const result = await saveItinerary(mockRequest);
 
-    expect(mockPost).toHaveBeenCalledWith("/api/v1/itineraries", mockRequest, {
-      headers: undefined,
-    });
-    expect(result).toEqual(mockResponse);
+    expect(mockPost).toHaveBeenCalledWith(
+      "/api/v1/itineraries",
+      { ...mockRequest, duration: mockRequest.duration + 1 },
+      { headers: undefined },
+    );
+    expect(result).toEqual(expectedResult);
   });
 
   it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
-    mockPost.mockResolvedValueOnce({ data: mockResponse });
+    mockPost.mockResolvedValueOnce({ data: rawServerResponse });
 
     await saveItinerary(mockRequest, "access-1");
 
-    expect(mockPost).toHaveBeenCalledWith("/api/v1/itineraries", mockRequest, {
-      headers: { Authorization: "Bearer access-1" },
-    });
+    expect(mockPost).toHaveBeenCalledWith(
+      "/api/v1/itineraries",
+      { ...mockRequest, duration: mockRequest.duration + 1 },
+      { headers: { Authorization: "Bearer access-1" } },
+    );
   });
 });
 
 describe("getItinerary", () => {
-  const mockResponse: ItineraryResponse = {
+  // 백엔드 원본 응답: duration은 일수(박 수+1) 기준
+  const rawServerResponse: ItineraryResponse = {
     itineraryId: "itinerary-1",
     title: "하동 1박 2일 여행",
     region: "HADONG",
     travelDate: "2025-01-15",
-    duration: 1,
+    duration: 2,
     lastModifiedAt: "2025-01-15T10:00:00Z",
     days: [
       {
@@ -183,17 +200,22 @@ describe("getItinerary", () => {
     ],
   };
 
+  const expectedResult: ItineraryResponse = {
+    ...rawServerResponse,
+    duration: 1,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("GET /api/v1/itineraries/{itineraryId}를 호출하고 응답을 그대로 반환", async () => {
-    mockGet.mockResolvedValueOnce({ data: mockResponse });
+  it("GET /api/v1/itineraries/{itineraryId}를 호출하고, 응답 duration을 박 수로 변환", async () => {
+    mockGet.mockResolvedValueOnce({ data: rawServerResponse });
 
     const result = await getItinerary("itinerary-1");
 
     expect(mockGet).toHaveBeenCalledWith("/api/v1/itineraries/itinerary-1");
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual(expectedResult);
   });
 
   it("오류 전파: apiClient가 throw 하면 오류를 그대로 전파", async () => {
@@ -222,12 +244,13 @@ describe("modifyItinerary", () => {
     ],
   };
 
-  const mockResponse: ItineraryResponse = {
+  // 백엔드 원본 응답: duration은 일수(박 수+1) 기준
+  const rawServerResponse: ItineraryResponse = {
     itineraryId: "itinerary-1",
     title: mockRequest.title,
     region: mockRequest.region,
     travelDate: mockRequest.travelDate,
-    duration: mockRequest.duration,
+    duration: mockRequest.duration + 1,
     lastModifiedAt: "2025-01-16T10:00:00Z",
     days: [
       {
@@ -247,20 +270,25 @@ describe("modifyItinerary", () => {
     ],
   };
 
+  const expectedResult: ItineraryResponse = {
+    ...rawServerResponse,
+    duration: mockRequest.duration,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("PATCH /api/v1/itineraries/{itineraryId}를 올바른 body로 호출하고 응답을 그대로 반환", async () => {
-    mockPatch.mockResolvedValueOnce({ data: mockResponse });
+  it("PATCH /api/v1/itineraries/{itineraryId}를 호출하며 duration을 박 수+1(일수)로 변환하고, 응답 duration은 다시 박 수로 변환", async () => {
+    mockPatch.mockResolvedValueOnce({ data: rawServerResponse });
 
     const result = await modifyItinerary("itinerary-1", mockRequest);
 
-    expect(mockPatch).toHaveBeenCalledWith(
-      "/api/v1/itineraries/itinerary-1",
-      mockRequest,
-    );
-    expect(result).toEqual(mockResponse);
+    expect(mockPatch).toHaveBeenCalledWith("/api/v1/itineraries/itinerary-1", {
+      ...mockRequest,
+      duration: mockRequest.duration + 1,
+    });
+    expect(result).toEqual(expectedResult);
   });
 
   it("오류 전파: apiClient가 throw 하면 오류를 그대로 전파", async () => {
