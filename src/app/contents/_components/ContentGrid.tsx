@@ -95,7 +95,7 @@ export function ContentGrid({
             />
 
             {filtered.length === 0 ? (
-              <p className="flex min-h-[420px] items-center justify-center text-center text-sm text-muted-foreground">
+              <p className="flex min-h-[60vh] items-center justify-center text-center text-sm text-muted-foreground">
                 조건에 맞는 콘텐츠가 없습니다
               </p>
             ) : (
