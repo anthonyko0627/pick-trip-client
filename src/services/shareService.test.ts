@@ -54,11 +54,12 @@ describe("createShare", () => {
 });
 
 describe("getSharedItinerary", () => {
-  const mockResponse: SharedItineraryResponse = {
+  // 백엔드 원본 응답: duration은 일수(박 수+1) 기준
+  const rawServerResponse: SharedItineraryResponse = {
     title: "하동 1박 2일 여행",
     region: "HADONG",
     travelDate: "2026-08-01",
-    duration: 1,
+    duration: 2,
     days: [
       {
         dayId: "day-1",
@@ -77,17 +78,22 @@ describe("getSharedItinerary", () => {
     ],
   };
 
+  const expectedResult: SharedItineraryResponse = {
+    ...rawServerResponse,
+    duration: 1,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("GET /api/v1/share/{token}을 호출하고 응답을 그대로 반환", async () => {
-    mockGet.mockResolvedValueOnce({ data: mockResponse });
+  it("GET /api/v1/share/{token}을 호출하고, 응답 duration을 박 수로 변환", async () => {
+    mockGet.mockResolvedValueOnce({ data: rawServerResponse });
 
     const result = await getSharedItinerary("share-token-1");
 
     expect(mockGet).toHaveBeenCalledWith("/api/v1/share/share-token-1");
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual(expectedResult);
   });
 
   it("오류 전파: apiClient가 throw 하면 오류를 그대로 전파(유효하지 않은 토큰 등)", async () => {
