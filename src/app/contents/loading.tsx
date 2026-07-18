@@ -8,13 +8,20 @@ export default function ContentsLoading() {
             {["a", "b", "c", "d", "e", "f", "g", "h"].map((k) => (
               <div
                 key={k}
-                className="overflow-hidden rounded-xl border border-border"
+                className="flex h-full flex-col overflow-hidden rounded-xl border border-border"
               >
                 <div className="aspect-video animate-pulse bg-muted" />
-                <div className="flex flex-col gap-2 p-4">
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                <div className="flex flex-col gap-2 p-4 pb-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
+                  </div>
                   <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
-                  <div className="h-8 w-full animate-pulse rounded bg-muted" />
+                  <div className="h-3 w-full animate-pulse rounded bg-muted" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
+                </div>
+                <div className="mt-auto p-4 pt-2">
+                  <div className="mt-1 h-8 w-full animate-pulse rounded-4xl bg-muted" />
                 </div>
               </div>
             ))}
