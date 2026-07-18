@@ -105,4 +105,64 @@ describe("ContentGrid", () => {
 
     expect(screen.getByText(/콘텐츠가 없습니다/)).toBeInTheDocument();
   });
+
+  it("콘텐츠를 카테고리별 섹션으로 나누어 표시한다", () => {
+    const contents = [
+      makeContent({ id: "1", name: "쌍계사", category: "CULTURE" }),
+      makeContent({ id: "2", name: "화개장터", category: "CULTURE" }),
+      makeContent({ id: "3", name: "하동 재첩국", category: "FOOD" }),
+    ];
+
+    render(
+      <ContentGrid
+        initialContents={contents}
+        itineraryHref={defaultItineraryHref}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: /문화/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /음식/ })).toBeInTheDocument();
+
+    const cultureHeading = screen.getByRole("heading", { name: /문화/ });
+    expect(cultureHeading).toHaveTextContent("2개");
+
+    const foodHeading = screen.getByRole("heading", { name: /음식/ });
+    expect(foodHeading).toHaveTextContent("1개");
+  });
+
+  it("카테고리가 없는 콘텐츠는 기타 섹션으로 묶인다", () => {
+    const contents = [
+      makeContent({ id: "1", name: "쌍계사", category: undefined }),
+    ];
+
+    render(
+      <ContentGrid
+        initialContents={contents}
+        itineraryHref={defaultItineraryHref}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: /기타/ })).toBeInTheDocument();
+  });
+
+  it("카테고리 필터 적용 시 선택한 카테고리 섹션만 표시된다", async () => {
+    const contents = [
+      makeContent({ id: "1", name: "쌍계사", category: "CULTURE" }),
+      makeContent({ id: "2", name: "하동 재첩국", category: "FOOD" }),
+    ];
+
+    render(
+      <ContentGrid
+        initialContents={contents}
+        itineraryHref={defaultItineraryHref}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "문화" }));
+
+    expect(screen.getByRole("heading", { name: /문화/ })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /음식/ }),
+    ).not.toBeInTheDocument();
+  });
 });

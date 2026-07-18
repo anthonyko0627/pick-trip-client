@@ -16,12 +16,14 @@ interface GetContentsParams {
 }
 
 // 백엔드 /api/v1/contents 목록 응답의 실제 필드 구조.
-// category/summary/indoor는 아직 내려주지 않는다.
 interface RawContentItem {
   contentId: string;
   title: string;
   address: string;
   firstImage: string;
+  category?: ContentCategory;
+  summary?: string | null;
+  indoor?: boolean;
 }
 
 interface RawContentsResponse {
@@ -34,8 +36,11 @@ function toContent(item: RawContentItem, region: Region): Content {
     id: item.contentId,
     name: item.title,
     region,
+    category: item.category,
     imageUrl: item.firstImage || null,
     address: item.address,
+    summary: item.summary ?? undefined,
+    indoor: item.indoor,
   };
 }
 
