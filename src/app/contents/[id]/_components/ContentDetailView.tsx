@@ -53,7 +53,7 @@ export function ContentDetailView({ content }: ContentDetailViewProps) {
         : "불필요";
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <div className="mx-auto w-full max-w-2xl px-4 py-6">
       <button
         type="button"
         onClick={() => router.back()}

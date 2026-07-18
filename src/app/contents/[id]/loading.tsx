@@ -1,6 +1,6 @@
 export default function ContentDetailLoading() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <div className="mx-auto w-full max-w-2xl px-4 py-6">
       <div className="mb-4 h-4 w-16 animate-pulse rounded bg-muted" />
       <div className="mb-6 aspect-video animate-pulse rounded-xl bg-muted" />
       <div className="mb-2 h-6 w-48 animate-pulse rounded bg-muted" />

@@ -127,7 +127,10 @@
   html {
     @apply font-sans;
     /* 세로 스크롤바 유무에 따라 뷰포트 가용 너비가 바뀌면서 검색창 등 콘텐츠
-       너비가 흔들리는 것을 막기 위해 스크롤바 자리를 항상 예약한다. */
+       너비가 흔들리는 것을 막기 위해 스크롤바 자리를 항상 예약한다.
+       scrollbar-gutter는 overflow가 visible이 아닐 때만 적용되므로
+       overflow-y를 명시해야 실제로 동작한다. */
+    overflow-y: auto;
     scrollbar-gutter: stable;
   }
 }

@@ -23,7 +23,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const next = isSafeNextPath(rawNext) ? rawNext : "/";
 
   return (
-    <main className="mx-auto flex max-w-sm flex-col px-4 py-24">
+    <main className="mx-auto flex w-full max-w-sm flex-col px-4 py-24">
       <Card>
         <CardHeader className="items-center text-center">
           <p className="mb-1.5 text-xs font-semibold tracking-wide text-primary uppercase">
