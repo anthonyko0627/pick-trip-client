@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useBasket } from "@/hooks/useBasket";
 import { REGIONS, type Region } from "@/types/region";
 
 import { RegionCard } from "./RegionCard";
@@ -11,6 +12,14 @@ import { RegionCard } from "./RegionCard";
 export function RegionSelectGrid() {
   const router = useRouter();
   const [selected, setSelected] = useState<Region[]>([]);
+  const { clear } = useBasket();
+
+  // Step 1(지역 선택) 진입은 새 여행 계획의 시작점이므로, 이전 계획에서
+  // 남은 바구니를 비운다. /contents 내부 이동(상세 보기 등)은 이 컴포넌트를
+  // 다시 마운트하지 않으므로 영향받지 않는다.
+  useEffect(() => {
+    clear();
+  }, [clear]);
 
   function handleToggle(region: Region) {
     setSelected((prev) =>

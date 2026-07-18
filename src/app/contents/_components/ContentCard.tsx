@@ -23,7 +23,7 @@ export function ContentCard({
   onToggleBasket,
 }: ContentCardProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-md">
       <Link href={`/contents/${content.id}`} className="block">
         <div className="relative aspect-video bg-muted">
           {content.imageUrl ? (
@@ -60,7 +60,7 @@ export function ContentCard({
         </div>
       </Link>
 
-      <div className="p-4 pt-2">
+      <div className="mt-auto p-4 pt-2">
         <Button
           variant={isInBasket ? "default" : "outline"}
           size="sm"
