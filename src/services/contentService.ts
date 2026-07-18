@@ -1,4 +1,9 @@
-import type { Content, ContentDetail, ContentsResponse } from "@/types/content";
+import type {
+  Content,
+  ContentCategory,
+  ContentDetail,
+  ContentsResponse,
+} from "@/types/content";
 import type { Region } from "@/types/region";
 
 import { apiClient } from "./apiClient";
@@ -64,7 +69,54 @@ export async function getContents(
   return { contents, total };
 }
 
+// 백엔드 /api/v1/contents/{id} 상세 응답의 실제 필드 구조.
+interface RawContentDetail {
+  contentId: string;
+  title: string;
+  address: string;
+  summary: string;
+  useTime: string | null;
+  restDate: string | null;
+  parking: string | null;
+  stayDuration: string | null;
+  reservationRequired: boolean | null;
+  dataSource: string | null;
+  images: { imageUrl: string; title: string }[];
+  category?: ContentCategory;
+  indoor?: boolean;
+  region: Region;
+}
+
+function toParkingAvailable(parking: string | null): boolean | null {
+  if (!parking) return null;
+  return !parking.includes("불가");
+}
+
+function toContentDetail(raw: RawContentDetail): ContentDetail {
+  const images = raw.images.map((i) => i.imageUrl);
+  return {
+    id: raw.contentId,
+    name: raw.title,
+    region: raw.region,
+    category: raw.category,
+    imageUrl: images[0] ?? null,
+    address: raw.address,
+    summary: raw.summary,
+    indoor: raw.indoor,
+    operatingHours: raw.useTime,
+    closedDay: raw.restDate,
+    parking: toParkingAvailable(raw.parking),
+    stayDuration: raw.stayDuration,
+    reservationRequired: raw.reservationRequired,
+    dataSource: raw.dataSource,
+    // ContentDetailView가 [imageUrl, ...imageUrls]로 갤러리를 합치므로 중복을 피해 나머지만 담는다.
+    imageUrls: images.slice(1),
+  };
+}
+
 export async function getContentById(id: string): Promise<ContentDetail> {
-  const { data } = await apiClient.get<ContentDetail>(`/api/v1/contents/${id}`);
-  return data;
+  const { data } = await apiClient.get<RawContentDetail>(
+    `/api/v1/contents/${id}`,
+  );
+  return toContentDetail(data);
 }
