@@ -34,8 +34,8 @@ function InfoRow({ label, value }: InfoRowProps) {
 
 export function ContentDetailView({ content }: ContentDetailViewProps) {
   const router = useRouter();
-  const { add, remove, isInBasket } = useBasket();
-  const inBasket = isInBasket(content.id);
+  const { items, add, remove } = useBasket();
+  const inBasket = items.some((i) => i.content.id === content.id);
 
   const allImages = [
     ...(content.imageUrl ? [content.imageUrl] : []),

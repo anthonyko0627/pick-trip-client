@@ -59,8 +59,9 @@ export function ContentGrid({
   >([]);
   const [keyword, setKeyword] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { items, add, remove, isInBasket, setPriority, clear } = useBasket();
+  const { items, add, remove, setPriority, clear } = useBasket();
   const router = useRouter();
+  const basketIds = new Set(items.map((i) => i.content.id));
 
   const filtered = initialContents.filter((c) => {
     const matchCategory =
@@ -117,9 +118,9 @@ export function ContentGrid({
                           <ContentCard
                             key={content.id}
                             content={content}
-                            isInBasket={isInBasket(content.id)}
+                            isInBasket={basketIds.has(content.id)}
                             onToggleBasket={() =>
-                              isInBasket(content.id)
+                              basketIds.has(content.id)
                                 ? remove(content.id)
                                 : add(content)
                             }
