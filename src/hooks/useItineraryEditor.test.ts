@@ -9,6 +9,15 @@ import type { Day, ItineraryResponse } from "@/types/itinerary";
 import { useItineraryEditor } from "./useItineraryEditor";
 
 vi.mock("@/services/itineraryService");
+// runAuthed는 fn을 실제 토큰으로 실행해, save()가 modifyItinerary에 토큰을
+// 제대로 전달하는지(로그인 상태가 요청에 반영되는지) 검증할 수 있게 한다.
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({
+    accessToken: "test-access-token",
+    runAuthed: (fn: (token?: string) => Promise<unknown>) =>
+      fn("test-access-token"),
+  }),
+}));
 
 const replacementContent: Content = {
   id: "content-3",
@@ -183,6 +192,7 @@ describe("useItineraryEditor", () => {
           }),
         ],
       }),
+      "test-access-token",
     );
 
     await waitFor(() => {
@@ -239,6 +249,7 @@ describe("useItineraryEditor", () => {
           }),
         ],
       }),
+      "test-access-token",
     );
   });
 

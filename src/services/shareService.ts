@@ -4,11 +4,19 @@ import type {
   SharedItineraryResponse,
 } from "@/types/itinerary";
 
+function authHeaders(accessToken?: string) {
+  return accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
+}
+
+// 소유자만 호출 가능한 API라 accessToken이 필요하다.
 export async function createShare(
   itineraryId: string,
+  accessToken?: string,
 ): Promise<ShareCreateResponse> {
   const { data } = await apiClient.post<ShareCreateResponse>(
     `/api/v1/itineraries/${itineraryId}/share`,
+    undefined,
+    { headers: authHeaders(accessToken) },
   );
   return data;
 }

@@ -557,6 +557,7 @@ describe("ItineraryClient", () => {
             }),
           ],
         }),
+        undefined,
       );
     });
   });
@@ -603,7 +604,7 @@ describe("ItineraryClient", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "공유하기" }));
 
-    expect(mockCreateShare).toHaveBeenCalledWith("itinerary-1");
+    expect(mockCreateShare).toHaveBeenCalledWith("itinerary-1", undefined);
     expect(
       await screen.findByDisplayValue(
         "https://pick-trip.example.com/share/share-token-1",

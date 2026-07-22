@@ -57,10 +57,12 @@ export async function getItinerary(
 export async function modifyItinerary(
   itineraryId: string,
   request: SaveItineraryRequest,
+  accessToken?: string,
 ): Promise<ItineraryResponse> {
   const { data } = await apiClient.patch<ItineraryResponse>(
     `/api/v1/itineraries/${itineraryId}`,
     { ...request, duration: nightsToServerDuration(request.duration) },
+    { headers: authHeaders(accessToken) },
   );
   return { ...data, duration: serverDurationToNights(data.duration) };
 }

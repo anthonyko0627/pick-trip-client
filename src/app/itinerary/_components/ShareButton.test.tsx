@@ -6,6 +6,13 @@ import * as shareServiceModule from "@/services/shareService";
 import { ShareButton } from "./ShareButton";
 
 vi.mock("@/services/shareService");
+// runAuthed는 fn을 그대로 실행(토큰 없음)해 재시도 없이 최종 결과/에러를 그대로 노출한다.
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({
+    accessToken: null,
+    runAuthed: (fn: (token?: string) => Promise<unknown>) => fn(undefined),
+  }),
+}));
 
 describe("ShareButton", () => {
   const mockCreateShare = vi.mocked(shareServiceModule.createShare);
@@ -35,7 +42,7 @@ describe("ShareButton", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "공유하기" }));
 
-    expect(mockCreateShare).toHaveBeenCalledWith("itinerary-1");
+    expect(mockCreateShare).toHaveBeenCalledWith("itinerary-1", undefined);
     expect(
       await screen.findByDisplayValue(
         "https://pick-trip.example.com/share/share-token-1",

@@ -37,8 +37,22 @@ describe("createShare", () => {
 
     expect(mockPost).toHaveBeenCalledWith(
       "/api/v1/itineraries/itinerary-1/share",
+      undefined,
+      { headers: undefined },
     );
     expect(result).toEqual(mockResponse);
+  });
+
+  it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
+    mockPost.mockResolvedValueOnce({ data: mockResponse });
+
+    await createShare("itinerary-1", "access-1");
+
+    expect(mockPost).toHaveBeenCalledWith(
+      "/api/v1/itineraries/itinerary-1/share",
+      undefined,
+      { headers: { Authorization: "Bearer access-1" } },
+    );
   });
 
   it("오류 전파: apiClient가 throw 하면 오류를 그대로 전파", async () => {

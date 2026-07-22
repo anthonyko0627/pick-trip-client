@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import { parseApiError } from "@/lib/errors";
 import { createShare } from "@/services/shareService";
 
@@ -22,6 +23,7 @@ export function ShareButton({ itineraryId }: ShareButtonProps) {
   const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  const { runAuthed } = useAuth();
 
   useEffect(() => {
     return () => clearTimeout(copiedTimeoutRef.current);
@@ -30,7 +32,9 @@ export function ShareButton({ itineraryId }: ShareButtonProps) {
   async function handleShare() {
     setState({ status: "loading" });
     try {
-      const { shareUrl } = await createShare(itineraryId);
+      const { shareUrl } = await runAuthed((token) =>
+        createShare(itineraryId, token),
+      );
       setState({ status: "created", shareUrl });
     } catch (err) {
       setState({ status: "error", message: parseApiError(err).message });

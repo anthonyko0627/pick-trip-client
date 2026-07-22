@@ -284,11 +284,24 @@ describe("modifyItinerary", () => {
 
     const result = await modifyItinerary("itinerary-1", mockRequest);
 
-    expect(mockPatch).toHaveBeenCalledWith("/api/v1/itineraries/itinerary-1", {
-      ...mockRequest,
-      duration: mockRequest.duration + 1,
-    });
+    expect(mockPatch).toHaveBeenCalledWith(
+      "/api/v1/itineraries/itinerary-1",
+      { ...mockRequest, duration: mockRequest.duration + 1 },
+      { headers: undefined },
+    );
     expect(result).toEqual(expectedResult);
+  });
+
+  it("accessToken을 전달하면 Authorization 헤더를 붙인다", async () => {
+    mockPatch.mockResolvedValueOnce({ data: rawServerResponse });
+
+    await modifyItinerary("itinerary-1", mockRequest, "access-1");
+
+    expect(mockPatch).toHaveBeenCalledWith(
+      "/api/v1/itineraries/itinerary-1",
+      { ...mockRequest, duration: mockRequest.duration + 1 },
+      { headers: { Authorization: "Bearer access-1" } },
+    );
   });
 
   it("오류 전파: apiClient가 throw 하면 오류를 그대로 전파", async () => {
