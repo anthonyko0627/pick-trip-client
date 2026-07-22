@@ -1,11 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockBack = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ back: mockBack }),
 }));
 
+import { useBasketStore } from "@/stores/basketStore";
 import type { ContentDetail } from "@/types/content";
 
 import { ContentDetailView } from "./ContentDetailView";
@@ -29,6 +31,12 @@ const stub: ContentDetail = {
 };
 
 describe("ContentDetailView", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    // 전역 바구니 스토어는 테스트 간 상태가 누수되므로 초기 상태로 리셋한다.
+    useBasketStore.setState({ items: [], hydrated: false });
+  });
+
   it("콘텐츠 이름을 렌더한다", () => {
     render(<ContentDetailView content={stub} />);
     expect(screen.getByText("쌍계사")).toBeInTheDocument();
@@ -62,5 +70,13 @@ describe("ContentDetailView", () => {
   it("담기 버튼을 렌더한다", () => {
     render(<ContentDetailView content={stub} />);
     expect(screen.getByRole("button", { name: /담기/ })).toBeInTheDocument();
+  });
+
+  it("담기 버튼 클릭 시 새로고침 없이 담김으로 즉시 바뀐다", async () => {
+    render(<ContentDetailView content={stub} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "담기" }));
+
+    expect(screen.getByRole("button", { name: "담김" })).toBeInTheDocument();
   });
 });

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
@@ -8,6 +8,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
+import { useBasketStore } from "@/stores/basketStore";
 import type { Content } from "@/types/content";
 
 import { ContentGrid } from "./ContentGrid";
@@ -28,6 +29,12 @@ const defaultItineraryHref =
   "/itinerary?regions=HADONG&startDate=2026-06-20&nights=1";
 
 describe("ContentGrid", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    // 전역 바구니 스토어는 테스트 간 상태가 누수되므로 초기 상태로 리셋한다.
+    useBasketStore.setState({ items: [], hydrated: false });
+  });
+
   it("전달받은 콘텐츠 카드를 모두 렌더한다", () => {
     const contents = [
       makeContent({ id: "1", name: "쌍계사" }),
@@ -143,6 +150,33 @@ describe("ContentGrid", () => {
     );
 
     expect(screen.getByRole("heading", { name: /기타/ })).toBeInTheDocument();
+  });
+
+  it("담기 버튼 클릭 시 새로고침 없이 담김으로 즉시 바뀐다", async () => {
+    render(
+      <ContentGrid
+        initialContents={[makeContent({ id: "1", name: "쌍계사" })]}
+        itineraryHref={defaultItineraryHref}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "담기" }));
+
+    expect(screen.getByRole("button", { name: "담김" })).toBeInTheDocument();
+  });
+
+  it("담김 버튼을 다시 누르면 담기로 즉시 바뀐다", async () => {
+    render(
+      <ContentGrid
+        initialContents={[makeContent({ id: "1", name: "쌍계사" })]}
+        itineraryHref={defaultItineraryHref}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "담기" }));
+    await userEvent.click(screen.getByRole("button", { name: "담김" }));
+
+    expect(screen.getByRole("button", { name: "담기" })).toBeInTheDocument();
   });
 
   it("카테고리 필터 적용 시 선택한 카테고리 섹션만 표시된다", async () => {
