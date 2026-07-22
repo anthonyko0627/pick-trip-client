@@ -284,6 +284,71 @@ describe("ItineraryClient", () => {
     expect(await screen.findByText(/저장되었습니다/)).toBeInTheDocument();
   });
 
+  it("generate 응답의 pinned가 null이어도 저장 요청에는 false로 채워 보낸다", async () => {
+    mockUpdateBasketConditions.mockResolvedValue({
+      basketId: "basket-1",
+      conditions: {
+        region: "HADONG",
+        travelDate: "2026-08-01",
+        duration: 1,
+        companions: [],
+      },
+      items: [],
+    });
+    mockAddBasketItem.mockResolvedValue({
+      itemId: "server-item-1",
+      contentId: "content-1",
+      title: "쌍계사",
+      priority: "MUST_VISIT",
+    });
+    // 백엔드가 pinned를 채우지 않은 응답을 보내는 상황을 재현한다.
+    // (Item 타입은 pinned: boolean이지만 런타임에는 null이 올 수 있다)
+    mockGenerateItinerary.mockResolvedValue({
+      ...mockGenerateResponse,
+      days: [
+        {
+          ...mockGenerateResponse.days[0],
+          items: [
+            {
+              ...mockGenerateResponse.days[0].items[0],
+              pinned: null as unknown as boolean,
+            },
+          ],
+        },
+      ],
+    });
+    mockSaveItinerary.mockResolvedValue(mockSavedResponse);
+
+    renderWithClient(
+      <ItineraryClient
+        regions="HADONG"
+        startDate="2026-08-01"
+        nights="1"
+        companions=""
+      />,
+    );
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "일정 생성하기" }),
+    );
+    await screen.findByRole("button", { name: "저장" });
+
+    await userEvent.click(screen.getByRole("button", { name: "저장" }));
+
+    await waitFor(() => {
+      expect(mockSaveItinerary).toHaveBeenCalledWith(
+        expect.objectContaining({
+          days: [
+            expect.objectContaining({
+              items: [expect.objectContaining({ pinned: false })],
+            }),
+          ],
+        }),
+        undefined,
+      );
+    });
+  });
+
   it("generate가 AUTH_REQUIRED로 실패하면 오류 대신 로그인 안내 배너와 바구니 기반 미리보기를 표시한다", async () => {
     mockUpdateBasketConditions.mockResolvedValue({
       basketId: "basket-1",

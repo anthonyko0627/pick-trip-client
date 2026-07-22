@@ -237,7 +237,7 @@ export function ItineraryClient({
           title: item.title,
           order: item.order,
           reason: item.reason,
-          pinned: item.pinned,
+          pinned: item.pinned ?? false,
         })),
       })),
     };
