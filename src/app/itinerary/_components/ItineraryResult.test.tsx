@@ -9,7 +9,7 @@ vi.mock("@/services/contentService");
 
 const makeDay = (overrides: Partial<Day> = {}): Day => ({
   dayId: "day-1",
-  dayIndex: 0,
+  dayIndex: 1,
   items: [
     {
       itemId: "item-1",
@@ -29,8 +29,8 @@ describe("ItineraryResult", () => {
       <ItineraryResult
         data={{
           days: [
-            makeDay({ dayIndex: 0 }),
-            makeDay({ dayId: "day-2", dayIndex: 1 }),
+            makeDay({ dayIndex: 1 }),
+            makeDay({ dayId: "day-2", dayIndex: 2 }),
           ],
         }}
       />,
