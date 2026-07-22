@@ -56,9 +56,10 @@ function buildLoginPreviewItinerary(
   nights: number,
 ): ItineraryGenerateResponse {
   const dayCount = nights + 1;
-  const days = Array.from({ length: dayCount }, (_, dayIndex) => ({
-    dayId: `preview-day-${dayIndex}`,
-    dayIndex,
+  // 백엔드는 dayIndex를 1부터 채번하므로(DayCard.tsx 참고) 미리보기도 동일하게 맞춘다.
+  const days = Array.from({ length: dayCount }, (_, i) => ({
+    dayId: `preview-day-${i}`,
+    dayIndex: i + 1,
     items: [] as ItineraryGenerateResponse["days"][number]["items"],
   }));
 

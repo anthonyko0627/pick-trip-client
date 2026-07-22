@@ -20,8 +20,9 @@ export function DayCard({
   onTogglePinned,
   onOpenReplacePicker,
 }: DayCardProps) {
-  // dayIndex가 0-based인지 1-based인지 백엔드 확인 전까지는 0-based로 가정한다.
-  const dayNumber = day.dayIndex + 1;
+  // 백엔드는 dayIndex를 1부터 채번한다(OpenAiItineraryClient 시스템 프롬프트,
+  // ItineraryServiceTest 등 서버 픽스처 전부 1부터 시작). 그대로 표시한다.
+  const dayNumber = day.dayIndex;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">

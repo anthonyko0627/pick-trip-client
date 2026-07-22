@@ -6,7 +6,7 @@ import { DayCard } from "./DayCard";
 
 const makeDay = (overrides: Partial<Day> = {}): Day => ({
   dayId: "day-1",
-  dayIndex: 0,
+  dayIndex: 1,
   items: [
     {
       itemId: "item-1",
@@ -21,14 +21,14 @@ const makeDay = (overrides: Partial<Day> = {}): Day => ({
 });
 
 describe("DayCard", () => {
-  it("dayIndex 0을 1일차로 표시한다", () => {
-    render(<DayCard day={makeDay({ dayIndex: 0 })} />);
+  it("dayIndex 1을 1일차로 표시한다", () => {
+    render(<DayCard day={makeDay({ dayIndex: 1 })} />);
 
     expect(screen.getByText("1일차")).toBeInTheDocument();
   });
 
-  it("dayIndex 1을 2일차로 표시한다", () => {
-    render(<DayCard day={makeDay({ dayIndex: 1 })} />);
+  it("dayIndex 2를 2일차로 표시한다", () => {
+    render(<DayCard day={makeDay({ dayIndex: 2 })} />);
 
     expect(screen.getByText("2일차")).toBeInTheDocument();
   });
