@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/errors";
 import { apiClient } from "./apiClient";
-import { getContentById, getContents } from "./contentService";
+import {
+  getContentById,
+  getContents,
+  getNearbyContents,
+} from "./contentService";
 
 vi.mock("./apiClient", () => ({
   apiClient: {
@@ -394,5 +398,141 @@ describe("getContentById (apiClient 이관)", () => {
     expect(result.imageUrls).toEqual([
       "http://tong.visitkorea.or.kr/other.jpg",
     ]);
+  });
+});
+
+describe("getNearbyContents", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("GET /api/v1/contents/{id}/nearby를 호출하고 응답을 NearbyContentsResponse 계약으로 변환한다", async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        originContentId: "111",
+        radiusKm: 5,
+        items: [
+          {
+            contentId: "222",
+            title: "최참판댁",
+            contentTypeId: "12",
+            address: "하동군 악양면",
+            firstImage: "https://example.com/1.jpg",
+            latitude: 35.13,
+            longitude: 127.57,
+            category: "CULTURE",
+            summary: "토지 배경",
+            region: "HADONG",
+            distanceKm: 1.23,
+          },
+        ],
+      },
+    });
+
+    const result = await getNearbyContents("111");
+
+    expect(mockGet).toHaveBeenCalledWith("/api/v1/contents/111/nearby");
+    expect(result).toEqual({
+      originContentId: "111",
+      radiusKm: 5,
+      contents: [
+        {
+          id: "222",
+          name: "최참판댁",
+          region: "HADONG",
+          category: "CULTURE",
+          imageUrl: "https://example.com/1.jpg",
+          address: "하동군 악양면",
+          summary: "토지 배경",
+          contentTypeId: "12",
+          latitude: 35.13,
+          longitude: 127.57,
+          distanceKm: 1.23,
+        },
+      ],
+    });
+  });
+
+  it("radiusKm·size가 주어지면 쿼리 문자열로 붙인다", async () => {
+    mockGet.mockResolvedValueOnce({
+      data: { originContentId: "111", radiusKm: 20, items: [] },
+    });
+
+    await getNearbyContents("111", { radiusKm: 20, size: 30 });
+
+    expect(mockGet).toHaveBeenCalledWith(
+      "/api/v1/contents/111/nearby?radiusKm=20&size=30",
+    );
+  });
+
+  it("firstImage가 null이면 imageUrl도 null, contentTypeId가 null이면 생략한다", async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        originContentId: "111",
+        radiusKm: 5,
+        items: [
+          {
+            contentId: "333",
+            title: "좌표만 있는 콘텐츠",
+            contentTypeId: null,
+            address: "하동군",
+            firstImage: null,
+            latitude: 35.1,
+            longitude: 127.5,
+            summary: null,
+            region: "HADONG",
+            distanceKm: 2.5,
+          },
+        ],
+      },
+    });
+
+    const { contents } = await getNearbyContents("111");
+
+    expect(contents[0].imageUrl).toBeNull();
+    expect(contents[0].summary).toBeUndefined();
+    expect(contents[0].contentTypeId).toBeUndefined();
+  });
+
+  it("이름·이미지 오버라이드 대상이면 교체값을 쓴다", async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        originContentId: "111",
+        radiusKm: 5,
+        items: [
+          {
+            contentId: "3442627", // 티카페하동
+            title: "하동야생차치유관 티카페하동",
+            contentTypeId: "39",
+            address: "하동군",
+            firstImage: "http://tong.visitkorea.or.kr/old.jpg",
+            latitude: 35.1,
+            longitude: 127.5,
+            category: "FOOD",
+            region: "HADONG",
+            distanceKm: 0.4,
+          },
+        ],
+      },
+    });
+
+    const { contents } = await getNearbyContents("111");
+
+    expect(contents[0].name).toBe("티카페하동");
+    expect(contents[0].imageUrl).toBe(
+      "http://tong.visitkorea.or.kr/cms/resource/23/3442623_image2_1.jpg",
+    );
+  });
+
+  it("기준 콘텐츠 좌표가 없으면 백엔드가 던진 ApiError를 그대로 throw한다", async () => {
+    mockGet.mockRejectedValueOnce(
+      new ApiError(
+        404,
+        "위치 정보가 없어 주변 콘텐츠를 조회할 수 없습니다.",
+        "CONTENT_LOCATION_UNKNOWN",
+      ),
+    );
+
+    await expect(getNearbyContents("111")).rejects.toThrow("위치 정보가 없어");
   });
 });

@@ -123,3 +123,21 @@ export interface ContentsResponse {
   contents: Content[];
   total: number;
 }
+
+// GET /api/v1/contents/{id}/nearby 한 항목. 기준 콘텐츠 좌표에서의 Haversine
+// 근사 거리(distanceKm, km)와 자기 좌표를 함께 들고 온다. 목록/상세와 달리
+// 이 응답은 category·좌표를 항상 채워주므로 좌표는 필수값으로 둔다.
+export interface NearbyContent extends Content {
+  // TourAPI contentTypeId (상세 카테고리 매핑용). 응답에 없으면 생략.
+  contentTypeId?: string;
+  latitude: number;
+  longitude: number;
+  distanceKm: number;
+}
+
+export interface NearbyContentsResponse {
+  originContentId: string;
+  // 서버가 클램프한 실제 반경(km). 요청값과 다를 수 있다.
+  radiusKm: number;
+  contents: NearbyContent[];
+}

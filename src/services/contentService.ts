@@ -9,6 +9,8 @@ import type {
   ContentCategory,
   ContentDetail,
   ContentsResponse,
+  NearbyContent,
+  NearbyContentsResponse,
 } from "@/types/content";
 import type { Region } from "@/types/region";
 
@@ -153,4 +155,74 @@ export async function getContentById(id: string): Promise<ContentDetail> {
     `/api/v1/contents/${id}`,
   );
   return toContentDetail(data);
+}
+
+// 백엔드 /api/v1/contents/{id}/nearby 응답의 실제 필드 구조.
+interface RawNearbyContentItem {
+  contentId: string;
+  title: string;
+  contentTypeId: string | null;
+  address: string;
+  firstImage: string | null;
+  latitude: number;
+  longitude: number;
+  category?: ContentCategory;
+  summary?: string | null;
+  // region은 @Enumerated(STRING)이라 "HADONG" 같은 코드로 온다.
+  region: Region;
+  distanceKm: number;
+}
+
+interface RawNearbyContentsResponse {
+  originContentId: string;
+  radiusKm: number;
+  items: RawNearbyContentItem[];
+}
+
+function toNearbyContent(item: RawNearbyContentItem): NearbyContent {
+  return {
+    id: item.contentId,
+    name: overrideContentName(item.contentId, item.title),
+    region: item.region,
+    category: item.category,
+    imageUrl: overrideContentImage(item.contentId, item.firstImage || null),
+    address: item.address,
+    summary: item.summary ?? undefined,
+    contentTypeId: item.contentTypeId ?? undefined,
+    latitude: item.latitude,
+    longitude: item.longitude,
+    distanceKm: item.distanceKm,
+  };
+}
+
+export interface GetNearbyContentsParams {
+  // 반경(km). 서버 기본 5, 최대 20으로 클램프된다.
+  radiusKm?: number;
+  // 결과 개수. 서버 기본 10, 최대 30으로 클램프된다.
+  size?: number;
+}
+
+// 기준 콘텐츠 좌표를 중심으로 반경 내 주변 콘텐츠를 거리순으로 조회한다.
+// 기준 콘텐츠가 로컬에 없으면 404 CONTENT_NOT_FOUND, 좌표가 없거나 (0,0)이면
+// 404 CONTENT_LOCATION_UNKNOWN이 ApiError로 던져진다.
+export async function getNearbyContents(
+  contentId: string,
+  params: GetNearbyContentsParams = {},
+): Promise<NearbyContentsResponse> {
+  const query = new URLSearchParams();
+  if (params.radiusKm !== undefined) {
+    query.set("radiusKm", String(params.radiusKm));
+  }
+  if (params.size !== undefined) query.set("size", String(params.size));
+  const qs = query.toString();
+
+  const { data } = await apiClient.get<RawNearbyContentsResponse>(
+    `/api/v1/contents/${contentId}/nearby${qs ? `?${qs}` : ""}`,
+  );
+
+  return {
+    originContentId: data.originContentId,
+    radiusKm: data.radiusKm,
+    contents: data.items.map(toNearbyContent),
+  };
 }
