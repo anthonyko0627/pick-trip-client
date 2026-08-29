@@ -61,6 +61,13 @@ describe("ForYouCard", () => {
     );
   });
 
+  it("카드 본문 링크가 박스 전체를 덮는 stretched link다", () => {
+    render(<ForYouCard content={stub} />);
+
+    const link = screen.getByRole("link", { name: /쌍계사/ });
+    expect(link).toHaveClass("after:absolute", "after:inset-0");
+  });
+
   it("'상세 설명' 버튼 대신 찜/담기 액션을 렌더한다", () => {
     render(<ForYouCard content={stub} />);
 
