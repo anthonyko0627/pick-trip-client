@@ -10,6 +10,7 @@ import {
   vi,
 } from "vitest";
 import { ApiError } from "@/lib/errors";
+import { FAVORITES_QUERY_KEY } from "@/lib/queryKeys";
 import type { UserMeResponse } from "@/types/auth";
 import { AuthProvider, useAuth } from "./useAuth";
 
@@ -33,10 +34,12 @@ const mockUser: UserMeResponse = {
 };
 
 // 각 테스트는 독립된 QueryClient를 쓰고, useAuth가 요구하는 두 Provider를 함께 감싼다.
-function createWrapper() {
-  const client = new QueryClient({
+// 일부 테스트는 QueryClient를 직접 조작/검사해야 해서 client를 주입할 수 있게 한다.
+function createWrapper(
+  client: QueryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
-  });
+  }),
+) {
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={client}>
       <AuthProvider>{children}</AuthProvider>
@@ -220,6 +223,29 @@ describe("useAuth", () => {
     expect(result.current.user).toBeNull();
   });
 
+  it("logout 성공 시 찜 쿼리 캐시를 비워 다음 로그인에서 재사용되지 않게 한다", async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    mockPost
+      .mockResolvedValueOnce(
+        sessionData({ accessToken: "access-1", user: mockUser }),
+      )
+      .mockResolvedValueOnce({ data: { ok: true } });
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: createWrapper(client),
+    });
+    await waitFor(() => expect(result.current.status).toBe("authenticated"));
+    client.setQueryData(FAVORITES_QUERY_KEY, [{ id: "1" }]);
+
+    await act(async () => {
+      await result.current.logout();
+    });
+
+    expect(client.getQueryData(FAVORITES_QUERY_KEY)).toBeUndefined();
+  });
+
   it("withdraw 성공 시 /auth/withdraw를 호출하고 세션을 초기화한다", async () => {
     mockPost
       .mockResolvedValueOnce(
@@ -242,6 +268,29 @@ describe("useAuth", () => {
     await waitFor(() => expect(result.current.status).toBe("unauthenticated"));
     expect(result.current.accessToken).toBeNull();
     expect(result.current.user).toBeNull();
+  });
+
+  it("withdraw 성공 시 찜 쿼리 캐시를 비워 다음 로그인에서 재사용되지 않게 한다", async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    mockPost
+      .mockResolvedValueOnce(
+        sessionData({ accessToken: "access-1", user: mockUser }),
+      )
+      .mockResolvedValueOnce({ data: { ok: true } });
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: createWrapper(client),
+    });
+    await waitFor(() => expect(result.current.status).toBe("authenticated"));
+    client.setQueryData(FAVORITES_QUERY_KEY, [{ id: "1" }]);
+
+    await act(async () => {
+      await result.current.withdraw();
+    });
+
+    expect(client.getQueryData(FAVORITES_QUERY_KEY)).toBeUndefined();
   });
 
   it("withdraw가 ok:false면 세션을 유지하고 false를 반환한다", async () => {
