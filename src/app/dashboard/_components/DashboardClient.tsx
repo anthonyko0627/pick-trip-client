@@ -16,7 +16,7 @@ interface DashboardClientProps {
   recommendedPool: Content[];
 }
 
-// 비로그인 직접 접근 가드. HomeGate와 대칭되는 반대 방향 리다이렉트다.
+// 비로그인 직접 접근 가드. 대시보드는 로그인 전용 화면이라 비로그인이면 홈으로 되돌린다.
 export function DashboardClient({ recommendedPool }: DashboardClientProps) {
   const { status } = useAuth();
   const router = useRouter();

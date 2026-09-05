@@ -6,7 +6,6 @@ import { SITE_URL } from "@/lib/site";
 import { CollectionsSection } from "./_components/CollectionsSection";
 import { CtaSection } from "./_components/CtaSection";
 import { HeroSection } from "./_components/HeroSection";
-import { HomeGate } from "./_components/HomeGate";
 import { HowItWorksSection } from "./_components/HowItWorksSection";
 import { RegionShowcase } from "./_components/RegionShowcase";
 import { TryItSection } from "./_components/TryItSection";
@@ -21,16 +20,14 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col">
-      <HomeGate>
-        <HeroSection />
-        <RegionShowcase />
-        <Suspense fallback={<TryItSkeleton />}>
-          <TryItSection />
-        </Suspense>
-        <HowItWorksSection />
-        <CollectionsSection />
-        <CtaSection />
-      </HomeGate>
+      <HeroSection />
+      <RegionShowcase />
+      <Suspense fallback={<TryItSkeleton />}>
+        <TryItSection />
+      </Suspense>
+      <HowItWorksSection />
+      <CollectionsSection />
+      <CtaSection />
     </main>
   );
 }
