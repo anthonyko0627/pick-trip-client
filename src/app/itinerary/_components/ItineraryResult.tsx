@@ -127,7 +127,7 @@ export function ItineraryResult({
               }
             />
           </div>
-          {hasAnyRoute && (
+          {hasAnyRoute && !hideMap && (
             <p className="mt-3.5 px-0.5 text-[12px] leading-relaxed text-muted-foreground">
               이동 시간·거리는 카카오 모빌리티 자동차 길찾기 실제 도로
               기준입니다. 순서를 바꾸면 다시 계산돼요.

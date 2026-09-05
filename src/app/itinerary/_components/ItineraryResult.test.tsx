@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as contentServiceModule from "@/services/contentService";
+import { installKakaoMock, uninstallKakaoMock } from "@/test/kakaoMapMock";
 import type { Day } from "@/types/itinerary";
 import { ItineraryResult } from "./ItineraryResult";
 
@@ -10,6 +11,12 @@ vi.mock("@/services/contentService");
 // 지도 데이터 해석은 별도 훅 테스트에서 검증한다. 여기서는 비활성으로 둔다.
 vi.mock("@/hooks/useItineraryMapData", () => ({
   useItineraryMapData: () => ({ status: "ready", days: [] }),
+}));
+
+// hideMap=false(standalone)에서 route가 있는 mapData를 넘기면 DayMapPanel이
+// 실제 ItineraryMap을 그리므로 카카오 SDK를 모킹해둔다.
+vi.mock("@/lib/kakaoMapLoader", () => ({
+  loadKakaoMaps: () => Promise.resolve(),
 }));
 
 const makeDay = (overrides: Partial<Day> = {}): Day => ({
@@ -29,6 +36,13 @@ const makeDay = (overrides: Partial<Day> = {}): Day => ({
 });
 
 describe("ItineraryResult", () => {
+  beforeEach(() => {
+    installKakaoMock();
+  });
+  afterEach(() => {
+    uninstallKakaoMock();
+  });
+
   it("선택한 일차 하나만 카드로 렌더하고, 지도(카드 내부)는 없다", () => {
     render(
       <ItineraryResult
@@ -122,32 +136,33 @@ describe("ItineraryResult", () => {
     ).not.toBeInTheDocument();
   });
 
+  const mapDataWithRoute = {
+    days: [
+      {
+        dayIndex: 1,
+        points: [
+          {
+            lat: 35.1,
+            lng: 127.7,
+            contentId: "content-1",
+            title: "쌍계사",
+          },
+        ],
+        route: {
+          totalDistanceMeters: 5000,
+          totalDurationSeconds: 600,
+          segments: [],
+          path: [],
+        },
+      },
+    ],
+  };
+
   it("실도로 경로가 잡힌 날이 있으면 이동값 기준 안내문을 보여준다", () => {
     render(
       <ItineraryResult
         data={{ days: [makeDay()] }}
-        hideMap
-        mapData={{
-          days: [
-            {
-              dayIndex: 1,
-              points: [
-                {
-                  lat: 35.1,
-                  lng: 127.7,
-                  contentId: "content-1",
-                  title: "쌍계사",
-                },
-              ],
-              route: {
-                totalDistanceMeters: 5000,
-                totalDurationSeconds: 600,
-                segments: [],
-                path: [],
-              },
-            },
-          ],
-        }}
+        mapData={mapDataWithRoute}
       />,
     );
 
@@ -157,7 +172,21 @@ describe("ItineraryResult", () => {
   });
 
   it("경로 데이터가 없으면 이동값 안내문을 보여주지 않는다", () => {
-    render(<ItineraryResult data={{ days: [makeDay()] }} hideMap />);
+    render(<ItineraryResult data={{ days: [makeDay()] }} />);
+
+    expect(
+      screen.queryByText(/카카오 모빌리티 자동차 길찾기 실제 도로/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hideMap이면 경로가 있어도 이동값 안내문을 렌더하지 않는다(호출부가 지도 옆에 둔다)", () => {
+    render(
+      <ItineraryResult
+        data={{ days: [makeDay()] }}
+        hideMap
+        mapData={mapDataWithRoute}
+      />,
+    );
 
     expect(
       screen.queryByText(/카카오 모빌리티 자동차 길찾기 실제 도로/),
