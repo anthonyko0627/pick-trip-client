@@ -109,4 +109,44 @@ describe("DayMapPanel", () => {
       "https://map.kakao.com/link/to/B,35.2,127.8",
     );
   });
+
+  it("지도 위 요약 배지에 일차와 장소 수를 보여준다", () => {
+    render(
+      <DayMapPanel
+        days={[day()]}
+        mapData={mapData({
+          totalDistanceMeters: 8300,
+          totalDurationSeconds: 1200,
+          segments: [{ distanceMeters: 8300, durationSeconds: 1200 }],
+          path: [],
+        })}
+        selectedDayIndex={0}
+      />,
+    );
+
+    expect(screen.getByText("1일차")).toBeInTheDocument();
+    expect(screen.getByText("2곳 · 20분 · 8.3km")).toBeInTheDocument();
+  });
+
+  it("이동 요약이 없어도 배지에 '·'로 끝나는 빈 값이 남지 않는다", () => {
+    render(
+      <DayMapPanel
+        days={[day({ totalTravelMinutes: null, totalTravelKm: null })]}
+        mapData={mapData()}
+        selectedDayIndex={0}
+      />,
+    );
+
+    expect(screen.getByText("2곳")).toBeInTheDocument();
+  });
+
+  it("요약 배지에 pointer-events-none이 걸려 있다", () => {
+    const { container } = render(
+      <DayMapPanel days={[day()]} mapData={mapData()} selectedDayIndex={0} />,
+    );
+
+    const badge = screen.getByText("1일차").closest("div.pointer-events-none");
+    expect(badge).not.toBeNull();
+    expect(container.querySelector(".pointer-events-none")).toBe(badge);
+  });
 });
