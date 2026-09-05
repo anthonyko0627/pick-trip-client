@@ -2,18 +2,22 @@
 
 import { useState } from "react";
 
-import { ItineraryResult } from "@/app/itinerary/_components/ItineraryResult";
-import { ShareButton } from "@/app/itinerary/_components/ShareButton";
 import { Icon } from "@/components/ui/icon";
 import { useAuth } from "@/hooks/useAuth";
 import { useItineraryMapSnapshots } from "@/hooks/useItineraryMapSnapshots";
 import { useSavedItineraries } from "@/hooks/useSavedItineraries";
 import { parseApiError } from "@/lib/errors";
-import { formatDuration } from "@/lib/itinerary";
+import {
+  formatDistanceKm,
+  formatDuration,
+  sumRouteTravel,
+} from "@/lib/itinerary";
 import { fromSnapshot } from "@/lib/itineraryMapSnapshot";
+import { cn } from "@/lib/utils";
 import { getItinerary } from "@/services/itineraryService";
 import type { ItineraryResponse } from "@/types/itinerary";
 import { REGION_LABELS } from "@/types/region";
+import { SavedItineraryDetail } from "./SavedItineraryDetail";
 
 type DetailState =
   | { status: "loading" }
@@ -26,6 +30,27 @@ function formatSavedAgo(savedAt: number) {
   const days = Math.floor((Date.now() - savedAt) / 86400000);
   if (days <= 0) return "오늘";
   return `${days}일 전`;
+}
+
+// 펼친 행 메타 끝에 붙는 "N곳 · N.Nkm" — 전체 장소 수 · 전체 이동 거리.
+// 지도 스냅샷(route 있는 날만 합산)이 있을 때만 값을 낸다. 스냅샷이 없거나
+// 어떤 날도 route가 없으면 null(=렌더 안 함) — 직선거리로 대체하지 않는다.
+function totalTravelMeta(
+  detail: DetailState | undefined,
+  snapshot: unknown,
+): string | null {
+  if (detail?.status !== "loaded") return null;
+  const mapData = fromSnapshot(snapshot);
+  if (!mapData) return null;
+  const travel = sumRouteTravel(mapData.days);
+  if (!travel) return null;
+  const km = formatDistanceKm(travel.km);
+  if (!km) return null;
+  const totalPlaces = detail.data.days.reduce(
+    (sum, day) => sum + day.items.length,
+    0,
+  );
+  return `${totalPlaces}곳 · ${km}`;
 }
 
 export function SavedItinerariesList() {
@@ -78,13 +103,20 @@ export function SavedItinerariesList() {
       {items.map((item) => {
         const isExpanded = expandedId === item.itineraryId;
         const detail = details[item.itineraryId];
+        const travelMeta = totalTravelMeta(detail, snapshots[item.itineraryId]);
 
         return (
           <li
             key={item.itineraryId}
             className="overflow-hidden rounded-[20px] border border-border bg-card"
           >
-            <div className="flex items-center gap-4.5 p-5.5">
+            <div
+              className={cn(
+                "flex items-center gap-4.5 p-5.5",
+                isExpanded &&
+                  "border-b border-[oklch(0.94_0.012_30)] bg-[oklch(0.985_0.012_30)]",
+              )}
+            >
               <div className="flex h-[58px] w-[58px] shrink-0 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[oklch(0.68_0.19_32)] to-[oklch(0.56_0.2_20)] text-center text-[11px] leading-tight font-extrabold text-white">
                 <span>{REGION_LABELS[item.region]}</span>
                 <span>{formatDuration(item.duration)}</span>
@@ -97,6 +129,9 @@ export function SavedItinerariesList() {
                   <span>{item.travelDate}</span>
                   <span>{formatDuration(item.duration)}</span>
                   <span>{formatSavedAgo(item.savedAt)} 저장</span>
+                  {travelMeta && (
+                    <span className="font-bold text-primary">{travelMeta}</span>
+                  )}
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-3">
@@ -113,7 +148,12 @@ export function SavedItinerariesList() {
                 <button
                   type="button"
                   onClick={() => handleToggle(item.itineraryId)}
-                  className="rounded-[11px] bg-primary px-4.5 py-2.5 text-[13px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                  className={cn(
+                    "rounded-[11px] px-4.5 py-2.5 text-[13px] font-bold transition-colors",
+                    isExpanded
+                      ? "border border-[oklch(0.85_0.06_30)] bg-[oklch(0.955_0.04_30)] text-[oklch(0.52_0.19_28)]"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90",
+                  )}
                 >
                   {isExpanded ? "접기" : "보기"}
                 </button>
@@ -121,7 +161,7 @@ export function SavedItinerariesList() {
             </div>
 
             {isExpanded && (
-              <div className="border-t border-border p-5.5 pt-4">
+              <div className="p-5.5 pt-4">
                 {detail?.status === "loading" && (
                   <p className="text-sm text-muted-foreground">
                     불러오는 중...
@@ -140,15 +180,13 @@ export function SavedItinerariesList() {
                   </div>
                 )}
                 {detail?.status === "loaded" && (
-                  <ItineraryResult
+                  <SavedItineraryDetail
                     data={detail.data}
                     mapData={
                       fromSnapshot(snapshots[detail.data.itineraryId]) ??
                       undefined
                     }
-                    headerAction={
-                      <ShareButton itineraryId={detail.data.itineraryId} />
-                    }
+                    itineraryId={detail.data.itineraryId}
                   />
                 )}
               </div>

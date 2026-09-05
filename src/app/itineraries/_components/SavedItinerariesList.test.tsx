@@ -1,13 +1,15 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/errors";
 import * as itineraryServiceModule from "@/services/itineraryService";
+import { useItineraryMapSnapshotStore } from "@/stores/itineraryMapSnapshotStore";
 import { useSavedItinerariesStore } from "@/stores/savedItinerariesStore";
 import type {
   ItineraryResponse,
   SavedItinerarySummary,
 } from "@/types/itinerary";
+import type { ItineraryMapSnapshot } from "@/types/map";
 import { SavedItinerariesList } from "./SavedItinerariesList";
 
 vi.mock("@/services/itineraryService");
@@ -72,6 +74,7 @@ describe("SavedItinerariesList", () => {
     // 전역 Zustand 스토어는 테스트 간 유지되므로, 매 테스트마다 초기화해
     // hydrated 플래그로 인해 새 시드가 무시되는 것을 막는다.
     useSavedItinerariesStore.setState({ items: [], hydrated: false });
+    useItineraryMapSnapshotStore.setState({ snapshots: {}, hydrated: true });
     vi.clearAllMocks();
   });
 
@@ -146,6 +149,57 @@ describe("SavedItinerariesList", () => {
     expect(
       screen.getByRole("button", { name: "다시 시도" }),
     ).toBeInTheDocument();
+  });
+
+  it("펼친 행에 route가 있는 스냅샷이 있으면 전체 장소 수·이동 거리 메타를 보여준다", async () => {
+    seedSaved([summary]);
+    mockGetItinerary.mockResolvedValue(detailResponse);
+    const snapshot: ItineraryMapSnapshot = {
+      v: 1,
+      savedAt: Date.now(),
+      days: [
+        {
+          dayIndex: 0,
+          points: [
+            { lat: 35.1, lng: 127.7, contentId: "content-1", title: "쌍계사" },
+          ],
+          route: {
+            totalDistanceMeters: 8300,
+            totalDurationSeconds: 1200,
+            segments: [],
+            path: [],
+          },
+        },
+      ],
+    };
+
+    render(<SavedItinerariesList />);
+    // 목록이 먼저 hydrate 되게 기다린다 — useItineraryMapSnapshots의 pruneTo가
+    // items 목록보다 먼저(빈 배열로) 실행되면 아래에서 세팅할 스냅샷을 곧장
+    // 지워버리기 때문에, hydrate가 끝난 뒤에 스냅샷을 세팅한다.
+    await screen.findByText("하동 1박 2일 여행");
+    act(() => {
+      useItineraryMapSnapshotStore.setState({
+        snapshots: { "itinerary-1": snapshot },
+        hydrated: true,
+      });
+    });
+
+    await userEvent.click(await screen.findByRole("button", { name: "보기" }));
+    await screen.findByText("쌍계사");
+
+    expect(screen.getByText("1곳 · 8.3km")).toBeInTheDocument();
+  });
+
+  it("스냅샷이 없으면 전체 장소 수·이동 거리 메타를 보여주지 않는다", async () => {
+    seedSaved([summary]);
+    mockGetItinerary.mockResolvedValue(detailResponse);
+
+    render(<SavedItinerariesList />);
+    await userEvent.click(await screen.findByRole("button", { name: "보기" }));
+    await screen.findByText("쌍계사");
+
+    expect(screen.queryByText(/곳 · .*km/)).not.toBeInTheDocument();
   });
 
   it("'목록에서 지우기' 클릭 시 항목이 목록에서 사라진다", async () => {
