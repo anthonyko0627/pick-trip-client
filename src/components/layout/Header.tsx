@@ -70,7 +70,10 @@ export function Header() {
   }
   const { items: basketItems } = useBasket();
   const { items: favoriteItems } = useFavorites();
-  const navItems = status === "authenticated" ? DASHBOARD_NAV_ITEMS : NAV_ITEMS;
+  const navItems =
+    status === "authenticated"
+      ? [...NAV_ITEMS, ...DASHBOARD_NAV_ITEMS]
+      : NAV_ITEMS;
 
   // 일정 공유 페이지와 로그인 페이지는 헤더 없는 화면이다. 로그인 페이지는
   // 자체적으로 좌측에 브랜드 영역을 갖고 있어 헤더가 중복으로 보인다.

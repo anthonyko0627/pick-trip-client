@@ -282,7 +282,7 @@ describe("Header", () => {
     ).toHaveAttribute("href", "/mypage");
   });
 
-  it("로그인 상태에서는 홈/콘텐츠 탐색/AI일정 대신 대시보드 링크만 보여준다", () => {
+  it("로그인 상태에서도 홈/콘텐츠 탐색/AI일정 링크가 그대로 보이고 대시보드 링크가 추가로 보인다", () => {
     mockUseAuth.mockReturnValue({
       status: "authenticated",
       user: {
@@ -298,13 +298,18 @@ describe("Header", () => {
 
     render(<Header />);
 
-    expect(screen.queryByRole("link", { name: "홈" })).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "콘텐츠 탐색" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "AI일정" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "홈" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(screen.getByRole("link", { name: "콘텐츠 탐색" })).toHaveAttribute(
+      "href",
+      "/explore",
+    );
+    expect(screen.getByRole("link", { name: "AI일정" })).toHaveAttribute(
+      "href",
+      "/select/conditions?regions=HADONG,YEONGJU,YECHEON",
+    );
     expect(screen.getByRole("link", { name: "대시보드" })).toHaveAttribute(
       "href",
       "/dashboard",
