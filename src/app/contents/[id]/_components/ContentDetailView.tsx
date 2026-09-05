@@ -65,8 +65,11 @@ export function ContentDetailView({
 }: ContentDetailViewProps) {
   const router = useRouter();
   const { items, add, remove } = useBasket();
-  const { active: favorited, toggle: toggleFavorite } =
-    useFavoriteHeart(content);
+  const {
+    active: favorited,
+    toggle: toggleFavorite,
+    pending: favoritePending,
+  } = useFavoriteHeart(content);
   const { addView } = useRecentViews();
   const inBasket = items.some((i) => i.content.id === content.id);
   const [addressCopied, setAddressCopied] = useState(false);
@@ -249,6 +252,7 @@ export function ContentDetailView({
                       aria-label={favorited ? "찜 해제" : "찜하기"}
                       aria-pressed={favorited}
                       onClick={toggleFavorite}
+                      disabled={favoritePending}
                       className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-muted text-[13px] font-bold hover:bg-muted/70 ${
                         favorited ? "text-destructive" : "text-foreground"
                       }`}
