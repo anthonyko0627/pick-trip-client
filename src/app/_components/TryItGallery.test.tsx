@@ -15,9 +15,21 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ status: "authenticated" }),
 }));
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => ({
+    items: [],
+    add: vi.fn(),
+    remove: vi.fn(),
+    isFavorited: () => false,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    isAdding: false,
+    isRemoving: false,
+  }),
+}));
 
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import {
   CATEGORY_LABELS,
   CONTENT_CATEGORY_ORDER,
@@ -62,7 +74,6 @@ describe("TryItGallery", () => {
     vi.clearAllMocks();
     localStorage.clear();
     useBasketStore.setState({ items: [], hydrated: true });
-    useFavoriteStore.setState({ items: [], hydrated: true });
   });
 
   it("필터 결과 상위 4개만 카드로 보여준다", () => {

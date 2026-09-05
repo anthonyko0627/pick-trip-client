@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useMemo } from "react";
 import { parseApiError } from "@/lib/errors";
+import { FAVORITES_QUERY_KEY, SESSION_QUERY_KEY } from "@/lib/queryKeys";
 import { apiClient } from "@/services/apiClient";
 import type { UserMeResponse } from "@/types/auth";
 
@@ -23,9 +24,6 @@ interface AuthContextValue {
   withdraw: () => Promise<boolean>;
   runAuthed: <T>(fn: (token?: string) => Promise<T>) => Promise<T>;
 }
-
-// 세션 쿼리 키를 한곳에서 관리해 refetch/setQueryData와 어긋나지 않게 한다.
-const SESSION_QUERY_KEY = ["auth", "session"] as const;
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -76,6 +74,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         accessToken: null,
         user: null,
       });
+      // 다음 로그인(다른 계정 포함) 때 이전 사용자의 찜 캐시가 재사용되지
+      // 않도록 함께 비운다.
+      queryClient.removeQueries({ queryKey: FAVORITES_QUERY_KEY });
     },
   });
 
@@ -99,6 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         accessToken: null,
         user: null,
       });
+      queryClient.removeQueries({ queryKey: FAVORITES_QUERY_KEY });
       return true;
     } catch {
       return false;

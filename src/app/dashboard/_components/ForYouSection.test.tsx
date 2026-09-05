@@ -12,9 +12,21 @@ vi.mock("@/hooks/useAuth", () => ({
     user: { nickname: "김여행" },
   }),
 }));
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => ({
+    items: [],
+    add: vi.fn(),
+    remove: vi.fn(),
+    isFavorited: () => false,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    isAdding: false,
+    isRemoving: false,
+  }),
+}));
 
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import type { Content } from "@/types/content";
 
 import { ForYouSection } from "./ForYouSection";
@@ -35,7 +47,6 @@ describe("ForYouSection", () => {
   beforeEach(() => {
     localStorage.clear();
     useBasketStore.setState({ items: [], hydrated: true });
-    useFavoriteStore.setState({ items: [], hydrated: true });
   });
 
   it("'For You' 라벨과 '{닉네임}님을 위한 추천' 제목을 렌더한다", () => {

@@ -11,8 +11,12 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => mockUseAuth(),
 }));
 
+const mockUseFavorites = vi.fn();
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => mockUseFavorites(),
+}));
+
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import { useSavedItinerariesStore } from "@/stores/savedItinerariesStore";
 import type { Content } from "@/types/content";
 
@@ -29,12 +33,26 @@ const stubContent: Content = {
   indoor: false,
 };
 
+function mockFavorites(items: Content[] = []) {
+  mockUseFavorites.mockReturnValue({
+    items,
+    add: vi.fn(),
+    remove: vi.fn(),
+    isFavorited: () => false,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    isAdding: false,
+    isRemoving: false,
+  });
+}
+
 describe("MyPageClient", () => {
   beforeEach(() => {
     mockReplace.mockClear();
     localStorage.clear();
     useBasketStore.setState({ items: [], hydrated: true });
-    useFavoriteStore.setState({ items: [], hydrated: true });
+    mockFavorites();
     useSavedItinerariesStore.setState({ items: [], hydrated: true });
   });
 
@@ -129,7 +147,7 @@ describe("MyPageClient", () => {
         createdAt: "2026-01-15T00:00:00Z",
       },
     });
-    useFavoriteStore.setState({ items: [stubContent], hydrated: true });
+    mockFavorites([stubContent]);
     useBasketStore.setState({
       items: [{ content: stubContent, addedAt: Date.now(), priority: null }],
       hydrated: true,
@@ -177,7 +195,7 @@ describe("MyPageClient", () => {
         createdAt: "2026-01-15T00:00:00Z",
       },
     });
-    useFavoriteStore.setState({ items: [stubContent], hydrated: true });
+    mockFavorites([stubContent]);
 
     render(<MyPageClient />);
 
@@ -197,14 +215,13 @@ describe("MyPageClient", () => {
       },
     });
     // add 순서대로 뒤에 쌓이므로 place-5가 가장 최근 찜이다.
-    useFavoriteStore.setState({
-      items: [1, 2, 3, 4, 5].map((n) => ({
+    mockFavorites(
+      [1, 2, 3, 4, 5].map((n) => ({
         ...stubContent,
         id: `${n}`,
         name: `place-${n}`,
       })),
-      hydrated: true,
-    });
+    );
 
     render(<MyPageClient />);
 
@@ -231,14 +248,13 @@ describe("MyPageClient", () => {
         createdAt: "2026-01-15T00:00:00Z",
       },
     });
-    useFavoriteStore.setState({
-      items: [1, 2, 3, 4].map((n) => ({
+    mockFavorites(
+      [1, 2, 3, 4].map((n) => ({
         ...stubContent,
         id: `${n}`,
         name: `place-${n}`,
       })),
-      hydrated: true,
-    });
+    );
 
     render(<MyPageClient />);
 

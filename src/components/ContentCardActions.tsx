@@ -13,8 +13,11 @@ interface ContentCardActionsProps {
 // 콘텐츠 카드 하단의 찜/담기 액션 행. RecommendedCard, ForYouCard 등 여러 카드가 공유한다.
 export function ContentCardActions({ content }: ContentCardActionsProps) {
   const { items: basketItems, add, remove } = useBasket();
-  const { active: favorited, toggle: toggleFavorite } =
-    useFavoriteHeart(content);
+  const {
+    active: favorited,
+    toggle: toggleFavorite,
+    pending: favoritePending,
+  } = useFavoriteHeart(content);
 
   // isInBasket(id) 같은 스토어 함수를 렌더 중 직접 호출하면 React Compiler가
   // 이를 순수 함수로 오인해 메모이제이션한다(함수 참조와 content.id가 그대로라 재계산을 건너뜀).
@@ -28,6 +31,7 @@ export function ContentCardActions({ content }: ContentCardActionsProps) {
         aria-label={favorited ? "찜 해제" : "찜하기"}
         aria-pressed={favorited}
         onClick={toggleFavorite}
+        disabled={favoritePending}
         className={favorited ? "text-destructive" : "text-muted-foreground"}
       >
         <Icon name="heart" size={18} />

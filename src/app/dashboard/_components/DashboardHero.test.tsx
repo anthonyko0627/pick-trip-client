@@ -9,9 +9,21 @@ vi.mock("@/hooks/useAuth", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => ({
+    items: [],
+    add: vi.fn(),
+    remove: vi.fn(),
+    isFavorited: () => false,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    isAdding: false,
+    isRemoving: false,
+  }),
+}));
 
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import { useSavedItinerariesStore } from "@/stores/savedItinerariesStore";
 import type { Content } from "@/types/content";
 
@@ -33,7 +45,6 @@ describe("DashboardHero", () => {
     localStorage.clear();
     useBasketStore.setState({ items: [], hydrated: true });
     useSavedItinerariesStore.setState({ items: [], hydrated: true });
-    useFavoriteStore.setState({ items: [], hydrated: true });
     mockUseAuth.mockReturnValue({
       status: "authenticated",
       user: { nickname: "김여행" },

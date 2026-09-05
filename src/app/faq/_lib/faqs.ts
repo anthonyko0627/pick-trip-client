@@ -5,7 +5,8 @@
 // - 로그인 없이 탐색·담기·생성 가능: 로그인 화면 안내 박스
 // - 생성 소요 시간 "약 30초": itinerary 로딩 화면 문구
 // - 최소 2개: BasketPanel "2개 이상 담으면 일정을 만들 수 있어요"
-// - 담은 콘텐츠·찜·저장 일정은 localStorage 저장(basketStore/favoriteStore/savedItinerariesStore)
+// - 담은 콘텐츠·저장 일정은 localStorage 저장(basketStore/savedItinerariesStore),
+//   찜은 로그인 후 서버(/api/v1/favorites)에 저장(useFavorites)
 // 구현이 바뀌면 답변도 함께 고친다.
 
 export const CONTACT_EMAIL = "hyeonjun1968@naver.com";

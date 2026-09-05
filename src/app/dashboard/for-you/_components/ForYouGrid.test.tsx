@@ -17,9 +17,22 @@ vi.mock("@/services/contentService", () => ({
   getContents: vi.fn(),
 }));
 
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => ({
+    items: [],
+    add: vi.fn(),
+    remove: vi.fn(),
+    isFavorited: () => false,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    isAdding: false,
+    isRemoving: false,
+  }),
+}));
+
 import { getContents } from "@/services/contentService";
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import type { Content } from "@/types/content";
 
 import { ForYouGrid } from "./ForYouGrid";
@@ -76,7 +89,6 @@ describe("ForYouGrid", () => {
   beforeEach(() => {
     localStorage.clear();
     useBasketStore.setState({ items: [], hydrated: true });
-    useFavoriteStore.setState({ items: [], hydrated: true });
     vi.resetAllMocks();
     // ContentBrowser는 마운트 시 window.location.search로 초기 필터를 읽고
     // 필터 변경 시 history.replaceState로 되쓴다. jsdom은 이 값을 테스트

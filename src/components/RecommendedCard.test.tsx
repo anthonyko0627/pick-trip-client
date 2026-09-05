@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Content } from "@/types/content";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -10,9 +12,32 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ status: "authenticated" }),
 }));
 
+// useFavorites는 서버 상태(React Query)라 전역 스토어로 직접 시드할 수 없다.
+// 테스트 안에서는 React state로 동작하는 가벼운 대역으로 대체해 add/remove
+// 클릭이 실제로 items를 바꾸고 재렌더되게 한다.
+let mockFavoriteItems: Content[] = [];
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => {
+    const [items, setItems] = useState<Content[]>(mockFavoriteItems);
+    return {
+      items,
+      add: (content: Content) =>
+        setItems((prev) =>
+          prev.some((c) => c.id === content.id) ? prev : [...prev, content],
+        ),
+      remove: (contentId: string) =>
+        setItems((prev) => prev.filter((c) => c.id !== contentId)),
+      isFavorited: (contentId: string) => items.some((c) => c.id === contentId),
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+      isAdding: false,
+      isRemoving: false,
+    };
+  },
+}));
+
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
-import type { Content } from "@/types/content";
 
 import { RecommendedCard } from "./RecommendedCard";
 
@@ -31,7 +56,7 @@ describe("RecommendedCard", () => {
   beforeEach(() => {
     localStorage.clear();
     useBasketStore.setState({ items: [], hydrated: true });
-    useFavoriteStore.setState({ items: [], hydrated: true });
+    mockFavoriteItems = [];
   });
 
   it("이름/주소/카테고리 배지를 렌더한다", () => {
@@ -68,11 +93,10 @@ describe("RecommendedCard", () => {
     render(<RecommendedCard content={stub} />);
 
     await userEvent.click(screen.getByRole("button", { name: "찜하기" }));
-    expect(useFavoriteStore.getState().items).toHaveLength(1);
     expect(screen.getByRole("button", { name: "찜 해제" })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "찜 해제" }));
-    expect(useFavoriteStore.getState().items).toHaveLength(0);
+    expect(screen.getByRole("button", { name: "찜하기" })).toBeInTheDocument();
   });
 
   it("detailHref가 없으면 상세 페이지로 이동하는 링크가 없다", () => {

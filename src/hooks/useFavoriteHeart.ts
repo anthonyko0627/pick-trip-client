@@ -11,7 +11,7 @@ import type { Content } from "@/types/content";
 // 클릭하면 로그인으로 유도한다.
 export function useFavoriteHeart(content: Content) {
   const { status } = useAuth();
-  const { items, add, remove } = useFavorites();
+  const { items, add, remove, isAdding, isRemoving } = useFavorites();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -20,12 +20,16 @@ export function useFavoriteHeart(content: Content) {
   // 순수 함수로 오인해 상태 변경 시 재계산을 건너뛴다. items 배열을 직접
   // 구독한 값으로 계산해야 한다(ContentCardActions의 기존 주석 참고).
   const active = authed && items.some((c) => c.id === content.id);
+  // 찜 추가/제거 요청이 아직 끝나지 않은 동안 중복 클릭으로 요청이 겹치지
+  // 않도록 소비처(버튼)가 disabled 처리에 쓸 수 있게 노출한다.
+  const pending = isAdding || isRemoving;
 
   function toggle() {
     if (!authed) {
       router.push(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }
+    if (pending) return;
     if (active) {
       remove(content.id);
     } else {
@@ -33,5 +37,5 @@ export function useFavoriteHeart(content: Content) {
     }
   }
 
-  return { active, toggle };
+  return { active, toggle, pending };
 }

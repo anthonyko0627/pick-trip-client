@@ -1,8 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { installKakaoMock, uninstallKakaoMock } from "@/test/kakaoMapMock";
+import type { Content, ContentDetail } from "@/types/content";
 
 const mockBack = vi.fn();
 const mockPush = vi.fn();
@@ -14,6 +16,31 @@ vi.mock("next/navigation", () => ({
 const mockUseAuth = vi.fn();
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => mockUseAuth(),
+}));
+
+// useFavorites는 서버 상태(React Query)라 전역 스토어로 직접 시드할 수 없다.
+// 테스트 안에서는 React state로 동작하는 가벼운 대역으로 대체해 add/remove
+// 클릭이 실제로 items를 바꾸고 재렌더되게 한다.
+let mockFavoriteItems: Content[] = [];
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => {
+    const [items, setItems] = useState<Content[]>(mockFavoriteItems);
+    return {
+      items,
+      add: (content: Content) =>
+        setItems((prev) =>
+          prev.some((c) => c.id === content.id) ? prev : [...prev, content],
+        ),
+      remove: (contentId: string) =>
+        setItems((prev) => prev.filter((c) => c.id !== contentId)),
+      isFavorited: (contentId: string) => items.some((c) => c.id === contentId),
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+      isAdding: false,
+      isRemoving: false,
+    };
+  },
 }));
 
 const loadKakaoMaps = vi.fn(() => Promise.resolve());
@@ -28,9 +55,7 @@ vi.mock("./NearbyContents", () => ({
 }));
 
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import { useRecentViewsStore } from "@/stores/recentViewsStore";
-import type { ContentDetail } from "@/types/content";
 
 import { ContentDetailView } from "./ContentDetailView";
 
@@ -70,7 +95,7 @@ describe("ContentDetailView", () => {
     Object.assign(navigator, { clipboard: { writeText: clipboardWriteText } });
     // 전역 스토어는 테스트 간 상태가 누수되므로 초기 상태로 리셋한다.
     useBasketStore.setState({ items: [], hydrated: false });
-    useFavoriteStore.setState({ items: [], hydrated: false });
+    mockFavoriteItems = [];
     useRecentViewsStore.setState({ items: [], hydrated: false });
   });
 
@@ -196,7 +221,7 @@ describe("ContentDetailView", () => {
 
   it("비로그인 상태에서는 하트가 비활성이고 클릭 시 로그인으로 유도한다", async () => {
     mockUseAuth.mockReturnValue({ status: "unauthenticated" });
-    useFavoriteStore.setState({ items: [stub], hydrated: true });
+    mockFavoriteItems = [stub];
 
     render(<ContentDetailView content={stub} />);
 
@@ -206,7 +231,8 @@ describe("ContentDetailView", () => {
     await userEvent.click(heart);
 
     expect(mockPush).toHaveBeenCalledWith("/login?next=%2Fcontents%2F1");
-    expect(useFavoriteStore.getState().items).toHaveLength(1);
+    // 비로그인 상태라 add/remove가 호출되지 않고 하트는 그대로 비활성이다.
+    expect(screen.getByRole("button", { name: "찜하기" })).toBeInTheDocument();
   });
 
   it("showBasketAction이 false이면 찜 버튼도 렌더하지 않는다", () => {
