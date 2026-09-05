@@ -12,6 +12,7 @@ import {
   hasEmptyDay,
   stayMinutes,
   sumDayTravel,
+  sumRouteTravel,
   sumStayMinutes,
   toSaveDays,
 } from "./itinerary";
@@ -62,6 +63,45 @@ describe("dayTravelLabel", () => {
       dayTravelLabel(
         makeDay({ totalTravelMinutes: null, totalTravelKm: null }),
       ),
+    ).toBeNull();
+  });
+});
+
+describe("sumRouteTravel", () => {
+  it("route가 있는 날만 골라 거리·시간을 합산한다", () => {
+    const result = sumRouteTravel([
+      {
+        dayIndex: 1,
+        points: [],
+        route: {
+          totalDistanceMeters: 8300,
+          totalDurationSeconds: 1200,
+          segments: [],
+          path: [],
+        },
+      },
+      {
+        dayIndex: 2,
+        points: [],
+        route: {
+          totalDistanceMeters: 14600,
+          totalDurationSeconds: 1500,
+          segments: [],
+          path: [],
+        },
+      },
+      { dayIndex: 3, points: [], route: null },
+    ]);
+
+    expect(result).toEqual({ km: 22.9, minutes: 45 });
+  });
+
+  it("route가 있는 날이 하나도 없으면 null을 반환한다", () => {
+    expect(
+      sumRouteTravel([
+        { dayIndex: 1, points: [], route: null },
+        { dayIndex: 2, points: [], route: null },
+      ]),
     ).toBeNull();
   });
 });
