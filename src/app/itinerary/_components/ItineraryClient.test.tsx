@@ -1049,4 +1049,124 @@ describe("ItineraryClient", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("생성 미리보기(저장 전) 화면에 대시보드로 이동하는 링크가 있다", async () => {
+    mockUpdateBasketConditions.mockResolvedValue({
+      basketId: "basket-1",
+      conditions: {
+        region: "HADONG",
+        travelDate: "2026-08-01",
+        duration: 1,
+        companions: [],
+      },
+      items: [],
+    });
+    mockAddBasketItem.mockResolvedValue({
+      itemId: "server-item-1",
+      contentId: "content-1",
+      title: "쌍계사",
+      priority: "MUST_VISIT",
+    });
+    mockGenerateItinerary.mockResolvedValue(mockGenerateResponse);
+
+    renderWithClient(
+      <ItineraryClient
+        regions="HADONG"
+        startDate="2026-08-01"
+        nights="1"
+        companions=""
+      />,
+    );
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "일정 생성하기" }),
+    );
+    await screen.findByRole("button", { name: "저장" });
+
+    const dashboardLink = screen.getByRole("link", { name: /대시보드/ });
+    expect(dashboardLink).toHaveAttribute("href", "/dashboard");
+  });
+
+  it("저장 완료 화면에 대시보드로 이동하는 링크가 있다", async () => {
+    mockUpdateBasketConditions.mockResolvedValue({
+      basketId: "basket-1",
+      conditions: {
+        region: "HADONG",
+        travelDate: "2026-08-01",
+        duration: 1,
+        companions: [],
+      },
+      items: [],
+    });
+    mockAddBasketItem.mockResolvedValue({
+      itemId: "server-item-1",
+      contentId: "content-1",
+      title: "쌍계사",
+      priority: "MUST_VISIT",
+    });
+    mockGenerateItinerary.mockResolvedValue(mockGenerateResponse);
+    mockSaveItinerary.mockResolvedValue(mockSavedResponse);
+
+    renderWithClient(
+      <ItineraryClient
+        regions="HADONG"
+        startDate="2026-08-01"
+        nights="1"
+        companions=""
+      />,
+    );
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "일정 생성하기" }),
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "저장" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "저장하기" }),
+    );
+    await screen.findByText(/저장되었습니다/);
+
+    const dashboardLink = screen.getByRole("link", { name: /대시보드/ });
+    expect(dashboardLink).toHaveAttribute("href", "/dashboard");
+  });
+
+  it("로그인 전 미리보기 화면에는 대시보드로 이동하는 링크가 없다", async () => {
+    mockUpdateBasketConditions.mockResolvedValue({
+      basketId: "basket-1",
+      conditions: {
+        region: "HADONG",
+        travelDate: "2026-08-01",
+        duration: 1,
+        companions: [],
+      },
+      items: [],
+    });
+    mockAddBasketItem.mockResolvedValue({
+      itemId: "server-item-1",
+      contentId: "content-1",
+      title: "쌍계사",
+      priority: "MUST_VISIT",
+    });
+    mockGenerateItinerary.mockRejectedValue(
+      new ApiError(401, "로그인이 필요합니다.", "AUTH_REQUIRED"),
+    );
+
+    renderWithClient(
+      <ItineraryClient
+        regions="HADONG"
+        startDate="2026-08-01"
+        nights="1"
+        companions=""
+      />,
+    );
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "일정 생성하기" }),
+    );
+
+    await screen.findByRole("link", { name: "로그인하고 계속하기" });
+
+    expect(
+      screen.queryByRole("link", { name: /대시보드/ }),
+    ).not.toBeInTheDocument();
+  });
 });
