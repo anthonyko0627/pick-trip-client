@@ -1,6 +1,28 @@
 import type { Day, DayRequest } from "@/types/itinerary";
 import type { ItineraryMapDay } from "@/types/map";
 
+/**
+ * 실도로 길찾기(route)가 잡힌 날만 골라 이동 거리·시간을 합산한다. route가 있는
+ * 날이 하나도 없으면 null(=표시 안 함) — 직선거리로 대체하지 않는다.
+ * `ItineraryMap.caption()`과 저장한 일정 목록 행의 전체 이동 거리 메타가 같은
+ * 규칙을 쓰도록 공유한다.
+ */
+export function sumRouteTravel(
+  days: ItineraryMapDay[],
+): { km: number; minutes: number } | null {
+  const withRoute = days.filter((d) => d.route);
+  if (withRoute.length === 0) return null;
+  const km = withRoute.reduce(
+    (s, d) => s + (d.route?.totalDistanceMeters ?? 0) / 1000,
+    0,
+  );
+  const minutes = withRoute.reduce(
+    (s, d) => s + Math.round((d.route?.totalDurationSeconds ?? 0) / 60),
+    0,
+  );
+  return { km, minutes };
+}
+
 export function formatDuration(duration: number) {
   return duration === 0 ? "당일치기" : `${duration}박 ${duration + 1}일`;
 }

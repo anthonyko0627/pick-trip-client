@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function ItinerariesPage() {
   return (
-    <main className="container mx-auto max-w-3xl px-4 py-8">
+    <main className="container mx-auto max-w-7xl px-4 py-8">
       <p className="mb-1.5 text-xs font-semibold tracking-wide text-primary uppercase">
         My Trips
       </p>

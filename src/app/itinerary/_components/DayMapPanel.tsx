@@ -15,6 +15,8 @@ interface DayMapPanelProps {
 // 레이아웃 사이드바(sticky)와 단독 렌더(공유 페이지·저장 목록 펼침) 양쪽에서 쓴다.
 // 좌표가 있는 장소가 하나도 없으면 아무것도 그리지 않는다.
 // 지도는 카드 상단 경계에 붙여(패딩 0) 왼쪽 DayCard 헤더와 시작선을 맞춘다.
+// 지도 위 좌상단에 일차·장소 수·이동 요약 배지를 올린다(pointer-events-none으로
+// 지도 드래그를 막지 않는다).
 export function DayMapPanel({
   days,
   mapData,
@@ -32,15 +34,36 @@ export function DayMapPanel({
     last.title,
   )},${last.lat},${last.lng}`;
   const travelLabel = dayTravelLabel(day, mapDay);
+  // DayMapPanel/day 뷰는 항상 코랄로 그린다(ItineraryMap의 CORAL 상수와 동일).
+  // dayIndex별 색으로 바꾸면 AI 일정 생성 결과·공유 페이지의 지도 색까지 함께
+  // 바뀌므로 이번 범위에서는 하지 않는다.
+  const dayColor = "#F2542D";
 
   return (
     <section className="overflow-hidden rounded-[20px] border border-border bg-card">
-      <ItineraryMap
-        variant="day"
-        days={[mapDay]}
-        heightClassName="h-[300px]"
-        bare
-      />
+      <div className="relative">
+        <ItineraryMap
+          variant="day"
+          days={[mapDay]}
+          heightClassName="h-[300px]"
+          bare
+        />
+
+        <div className="pointer-events-none absolute top-3 left-3 z-10 flex items-center gap-2 rounded-[12px] border border-border bg-white/94 px-3 py-2 shadow-[0_6px_18px_-10px_rgba(48,20,12,.5)]">
+          <span
+            aria-hidden="true"
+            className="h-2 w-2 rounded-full"
+            style={{ backgroundColor: dayColor }}
+          />
+          <span className="text-[12.5px] font-extrabold text-foreground">
+            {day.dayIndex}일차
+          </span>
+          <span aria-hidden="true" className="h-3 w-px bg-border" />
+          <span className="text-[12px] text-[oklch(0.45_0.015_30)]">
+            {[`${day.items.length}곳`, travelLabel].filter(Boolean).join(" · ")}
+          </span>
+        </div>
+      </div>
 
       <div className="flex flex-col gap-3 p-4">
         {travelLabel && (

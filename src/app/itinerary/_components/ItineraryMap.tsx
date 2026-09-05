@@ -4,7 +4,11 @@ import { useEffect, useRef } from "react";
 
 import { useKakaoMap } from "@/hooks/useKakaoMap";
 import { haversineKm } from "@/lib/geo";
-import { formatDistanceKm, formatTravelMinutes } from "@/lib/itinerary";
+import {
+  formatDistanceKm,
+  formatTravelMinutes,
+  sumRouteTravel,
+} from "@/lib/itinerary";
 import type { ItineraryMapDay } from "@/types/map";
 
 // 일차별 마커/경로 색. overview(여러 날)에서 dayIndex(1-base) 기준으로 순환한다.
@@ -73,19 +77,12 @@ function straightLineKm(day: ItineraryMapDay): number {
 }
 
 function caption(days: ItineraryMapDay[]): string | null {
-  const withRoute = days.filter((d) => d.route);
-  if (withRoute.length > 0) {
-    const km = withRoute.reduce(
-      (s, d) => s + (d.route?.totalDistanceMeters ?? 0) / 1000,
-      0,
-    );
-    const min = withRoute.reduce(
-      (s, d) => s + Math.round((d.route?.totalDurationSeconds ?? 0) / 60),
-      0,
-    );
-    const parts = [formatDistanceKm(km), formatTravelMinutes(min)].filter(
-      Boolean,
-    );
+  const routeTravel = sumRouteTravel(days);
+  if (routeTravel) {
+    const parts = [
+      formatDistanceKm(routeTravel.km),
+      formatTravelMinutes(routeTravel.minutes),
+    ].filter(Boolean);
     return parts.length > 0 ? `이동 ${parts.join(" · ")}` : null;
   }
   const km = days.reduce((s, d) => s + straightLineKm(d), 0);
