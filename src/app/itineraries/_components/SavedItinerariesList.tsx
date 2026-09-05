@@ -108,11 +108,15 @@ export function SavedItinerariesList() {
         return (
           <li
             key={item.itineraryId}
-            className="overflow-hidden rounded-[20px] border border-border bg-card"
+            className="rounded-[20px] border border-border bg-card"
           >
+            {/* li 자체엔 overflow-hidden을 두지 않는다 — 펼친 영역의 지도가
+                lg:sticky로 스크롤을 따라가야 하는데, 조상에 overflow:hidden이
+                있으면 sticky가 무효화된다. 대신 펼침 배경이 있는 헤더 행에만
+                rounded-t로 li의 위쪽 라운드를 맞춘다. */}
             <div
               className={cn(
-                "flex items-center gap-4.5 p-5.5",
+                "flex items-center gap-4.5 rounded-t-[20px] p-5.5",
                 isExpanded &&
                   "border-b border-[oklch(0.94_0.012_30)] bg-[oklch(0.985_0.012_30)]",
               )}
