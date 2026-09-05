@@ -9,9 +9,21 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ status: "authenticated" }),
 }));
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => ({
+    items: [],
+    add: vi.fn(),
+    remove: vi.fn(),
+    isFavorited: () => false,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    isAdding: false,
+    isRemoving: false,
+  }),
+}));
 
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import type { Content } from "@/types/content";
 
 import { ContentCard } from "./ContentCard";
@@ -31,7 +43,6 @@ describe("ContentCard", () => {
   beforeEach(() => {
     localStorage.clear();
     useBasketStore.setState({ items: [], hydrated: true });
-    useFavoriteStore.setState({ items: [], hydrated: true });
   });
 
   it("콘텐츠 이름/카테고리/주소/요약/지역을 렌더한다", () => {

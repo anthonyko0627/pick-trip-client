@@ -10,6 +10,19 @@ const mockUseAuth = vi.fn();
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => mockUseAuth(),
 }));
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => ({
+    items: [],
+    add: vi.fn(),
+    remove: vi.fn(),
+    isFavorited: () => false,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    isAdding: false,
+    isRemoving: false,
+  }),
+}));
 
 import { useBasketStore } from "@/stores/basketStore";
 import { useRecentViewsStore } from "@/stores/recentViewsStore";

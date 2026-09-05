@@ -7,8 +7,12 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
+const mockUseFavorites = vi.fn();
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => mockUseFavorites(),
+}));
+
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import { useSavedItinerariesStore } from "@/stores/savedItinerariesStore";
 import type { Content } from "@/types/content";
 
@@ -33,7 +37,17 @@ describe("DashStats", () => {
       items: [{ content: stubContent, addedAt: Date.now(), priority: null }],
       hydrated: true,
     });
-    useFavoriteStore.setState({ items: [stubContent], hydrated: true });
+    mockUseFavorites.mockReturnValue({
+      items: [stubContent],
+      add: vi.fn(),
+      remove: vi.fn(),
+      isFavorited: () => false,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+      isAdding: false,
+      isRemoving: false,
+    });
     useSavedItinerariesStore.setState({ items: [], hydrated: true });
   });
 

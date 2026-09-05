@@ -11,9 +11,21 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ status: "authenticated" }),
 }));
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => ({
+    items: [],
+    add: vi.fn(),
+    remove: vi.fn(),
+    isFavorited: () => false,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    isAdding: false,
+    isRemoving: false,
+  }),
+}));
 
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import type { BasketItem } from "@/types/basket";
 import type { Content } from "@/types/content";
 
@@ -46,7 +58,6 @@ describe("BasketPageClient", () => {
     mockPush.mockClear();
     localStorage.clear();
     useBasketStore.setState({ items: [], hydrated: true });
-    useFavoriteStore.setState({ items: [], hydrated: true });
   });
 
   it("바구니가 비어 있으면 안내 문구와 여행 조건 페이지 링크를 보여준다", () => {

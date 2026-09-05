@@ -20,8 +20,21 @@ vi.mock("@/services/contentService", () => ({
   getContents: vi.fn(),
 }));
 
+vi.mock("@/hooks/useFavorites", () => ({
+  useFavorites: () => ({
+    items: [],
+    add: vi.fn(),
+    remove: vi.fn(),
+    isFavorited: () => false,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    isAdding: false,
+    isRemoving: false,
+  }),
+}));
+
 import { useBasketStore } from "@/stores/basketStore";
-import { useFavoriteStore } from "@/stores/favoriteStore";
 import type { Content } from "@/types/content";
 
 import { ForYouClient } from "./ForYouClient";
@@ -65,7 +78,6 @@ describe("ForYouClient", () => {
     mockPush.mockClear();
     localStorage.clear();
     useBasketStore.setState({ items: [], hydrated: true });
-    useFavoriteStore.setState({ items: [], hydrated: true });
   });
 
   it("unauthenticated면 아무것도 렌더하지 않고 '/'로 리다이렉트한다", () => {
