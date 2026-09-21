@@ -56,6 +56,7 @@ vi.mock("@/hooks/useBasket", () => ({
         },
         addedAt: 1,
         priority: "MUST",
+        desiredStayMinutes: 90,
       },
       {
         content: {
@@ -67,6 +68,7 @@ vi.mock("@/hooks/useBasket", () => ({
         },
         addedAt: 2,
         priority: null,
+        desiredStayMinutes: null,
       },
     ],
     clear: mockClearBasket,
@@ -222,11 +224,18 @@ describe("ItineraryClient", () => {
       undefined,
     );
     expect(mockAddBasketItem).toHaveBeenCalledTimes(2);
+    // 희망 체류시간을 지정한 항목은 desiredStayMinutes를 함께 보낸다.
     expect(mockAddBasketItem).toHaveBeenCalledWith(
       expect.objectContaining({
         contentId: "content-1",
         priority: "MUST_VISIT",
+        desiredStayMinutes: 90,
       }),
+      undefined,
+    );
+    // 지정하지 않은 항목은 desiredStayMinutes 필드 자체를 보내지 않는다.
+    expect(mockAddBasketItem).toHaveBeenCalledWith(
+      expect.not.objectContaining({ desiredStayMinutes: expect.anything() }),
       undefined,
     );
 

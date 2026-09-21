@@ -44,8 +44,18 @@ describe("BasketLayout", () => {
   it("바구니에 담긴 콘텐츠 개수를 패널과 FAB에 표시한다", () => {
     useBasketStore.setState({
       items: [
-        { content: makeContent({ id: "1" }), addedAt: 1, priority: null },
-        { content: makeContent({ id: "2" }), addedAt: 2, priority: null },
+        {
+          content: makeContent({ id: "1" }),
+          addedAt: 1,
+          priority: null,
+          desiredStayMinutes: null,
+        },
+        {
+          content: makeContent({ id: "2" }),
+          addedAt: 2,
+          priority: null,
+          desiredStayMinutes: null,
+        },
       ],
       hydrated: true,
     });
@@ -65,7 +75,12 @@ describe("BasketLayout", () => {
   it("바구니가 2개 미만이면 AI 일정 생성 버튼이 비활성화된다", () => {
     useBasketStore.setState({
       items: [
-        { content: makeContent({ id: "1" }), addedAt: 1, priority: null },
+        {
+          content: makeContent({ id: "1" }),
+          addedAt: 1,
+          priority: null,
+          desiredStayMinutes: null,
+        },
       ],
       hydrated: true,
     });
@@ -84,8 +99,18 @@ describe("BasketLayout", () => {
   it("바구니가 2개 이상이면 AI 일정 생성 버튼 클릭 시 generateHref로 이동한다", async () => {
     useBasketStore.setState({
       items: [
-        { content: makeContent({ id: "1" }), addedAt: 1, priority: null },
-        { content: makeContent({ id: "2" }), addedAt: 2, priority: null },
+        {
+          content: makeContent({ id: "1" }),
+          addedAt: 1,
+          priority: null,
+          desiredStayMinutes: null,
+        },
+        {
+          content: makeContent({ id: "2" }),
+          addedAt: 2,
+          priority: null,
+          desiredStayMinutes: null,
+        },
       ],
       hydrated: true,
     });

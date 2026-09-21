@@ -48,6 +48,7 @@ const makeItem = (overrides: Partial<Content> = {}): BasketItem => ({
   content: makeContent(overrides),
   addedAt: Date.now(),
   priority: null,
+  desiredStayMinutes: null,
 });
 
 function setBasket(items: BasketItem[]) {

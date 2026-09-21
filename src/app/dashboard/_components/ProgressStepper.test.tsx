@@ -24,6 +24,7 @@ function setBasketCount(count: number) {
       content: { ...stubContent, id: String(i) },
       addedAt: Date.now(),
       priority: null,
+      desiredStayMinutes: null,
     })),
     hydrated: true,
   });

@@ -19,6 +19,7 @@ const makeItem = (id: string, name: string): BasketItem => ({
   },
   addedAt: Date.now(),
   priority: null,
+  desiredStayMinutes: null,
 });
 
 const defaultProps = {

@@ -31,6 +31,7 @@ function courseToBasketItems(course: TripCourse): BasketItem[] {
       },
       addedAt,
       priority: "MUST",
+      desiredStayMinutes: null,
     }),
   );
 }

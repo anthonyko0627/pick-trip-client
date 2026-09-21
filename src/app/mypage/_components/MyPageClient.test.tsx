@@ -149,7 +149,14 @@ describe("MyPageClient", () => {
     });
     mockFavorites([stubContent]);
     useBasketStore.setState({
-      items: [{ content: stubContent, addedAt: Date.now(), priority: null }],
+      items: [
+        {
+          content: stubContent,
+          addedAt: Date.now(),
+          priority: null,
+          desiredStayMinutes: null,
+        },
+      ],
       hydrated: true,
     });
 

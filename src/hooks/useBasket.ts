@@ -18,8 +18,18 @@ export function useBasket() {
   const remove = useBasketStore((s) => s.remove);
   const isInBasket = useBasketStore((s) => s.isInBasket);
   const setPriority = useBasketStore((s) => s.setPriority);
+  const setStayMinutes = useBasketStore((s) => s.setStayMinutes);
   const clear = useBasketStore((s) => s.clear);
   const save = useBasketStore((s) => s.save);
 
-  return { items, add, remove, isInBasket, setPriority, clear, save };
+  return {
+    items,
+    add,
+    remove,
+    isInBasket,
+    setPriority,
+    setStayMinutes,
+    clear,
+    save,
+  };
 }

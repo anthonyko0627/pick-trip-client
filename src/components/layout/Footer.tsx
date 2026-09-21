@@ -21,7 +21,7 @@ const SITE_NAV = [
 const SUPPORT_NAV = [
   { href: "/faq", label: "자주 묻는 질문", external: false },
   {
-    href: "mailto:hyeonjun1968@naver.com",
+    href: "mailto:support@pick-trip.app",
     label: "서비스 문의",
     external: true,
   },
@@ -118,10 +118,10 @@ export function Footer() {
           <div className="mt-[18px] border-t border-[oklch(0.94_0.012_30)] pt-4">
             <p className="text-[12px] text-[oklch(0.5_0.015_30)]">이메일</p>
             <a
-              href="mailto:hyeonjun1968@naver.com"
+              href="mailto:support@pick-trip.app"
               className="text-[13px] font-bold text-[oklch(0.52_0.19_28)] transition-colors hover:text-primary"
             >
-              hyeonjun1968@naver.com
+              support@pick-trip.app
             </a>
             <p className="mt-2 text-[12px] leading-[1.6] text-[oklch(0.5_0.015_30)]">
               평일 09:00 – 18:00 응답

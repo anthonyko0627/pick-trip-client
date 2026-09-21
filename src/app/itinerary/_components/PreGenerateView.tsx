@@ -9,6 +9,7 @@ import { formatDuration } from "@/lib/itinerary";
 import { JOURNEY_STEPS } from "@/lib/journey";
 import { cn } from "@/lib/utils";
 import type { BasketItem, BasketPriority } from "@/types/basket";
+import { STAY_MINUTES_OPTIONS } from "@/types/basket";
 import { CATEGORY_LABELS } from "@/types/content";
 import {
   ALL_TRAVEL_MODES,
@@ -149,7 +150,7 @@ export function PreGenerateView({
   onGenerate,
   error,
 }: PreGenerateViewProps) {
-  const { items, remove } = useBasket();
+  const { items, remove, setStayMinutes } = useBasket();
 
   // 일정 생성 옵션. mode/startContentId는 서버 기본값과 동일하게 시작한다.
   // 이동수단은 사용자가 고르지 않고 항상 전체를 요청한다(ALL_TRAVEL_MODES).
@@ -449,6 +450,9 @@ export function PreGenerateView({
                           key={entry.content.id}
                           entry={entry}
                           onRemove={() => remove(entry.content.id)}
+                          onSetStayMinutes={(minutes) =>
+                            setStayMinutes(entry.content.id, minutes)
+                          }
                         />
                       ))}
                     </ul>
@@ -581,9 +585,11 @@ export function PreGenerateView({
 function BasketRow({
   entry,
   onRemove,
+  onSetStayMinutes,
 }: {
   entry: BasketItem;
   onRemove: () => void;
+  onSetStayMinutes: (minutes: number | null) => void;
 }) {
   const { content } = entry;
   const meta = [
@@ -594,30 +600,46 @@ function BasketRow({
     .join(" · ");
 
   return (
-    <li className="flex items-center gap-2.5 rounded-[12px] border border-[oklch(0.95_0.008_30)] bg-white p-2">
-      <span
-        className="h-[42px] w-[42px] shrink-0 rounded-[12px] bg-cover bg-center"
-        style={
-          content.imageUrl
-            ? { backgroundImage: `url(${content.imageUrl})` }
-            : {
-                backgroundImage:
-                  "repeating-linear-gradient(45deg, oklch(0.93 0.028 30) 0 7px, oklch(0.965 0.014 30) 7px 14px)",
-              }
-        }
-      />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[13.5px] font-bold">{content.name}</p>
-        <p className="truncate text-[11px] text-muted-foreground">{meta}</p>
+    <li className="flex flex-col gap-2 rounded-[12px] border border-[oklch(0.95_0.008_30)] bg-white p-2">
+      <div className="flex items-center gap-2.5">
+        <span
+          className="h-[42px] w-[42px] shrink-0 rounded-[12px] bg-cover bg-center"
+          style={
+            content.imageUrl
+              ? { backgroundImage: `url(${content.imageUrl})` }
+              : {
+                  backgroundImage:
+                    "repeating-linear-gradient(45deg, oklch(0.93 0.028 30) 0 7px, oklch(0.965 0.014 30) 7px 14px)",
+                }
+          }
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13.5px] font-bold">{content.name}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{meta}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`${content.name} 삭제`}
+          className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+        >
+          <Icon name="close" size={14} />
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label={`${content.name} 삭제`}
-        className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+      <select
+        aria-label={`${content.name} 체류 시간`}
+        value={entry.desiredStayMinutes ?? ""}
+        onChange={(e) =>
+          onSetStayMinutes(e.target.value ? Number(e.target.value) : null)
+        }
+        className="w-full rounded-lg border border-[oklch(0.92_0.01_30)] bg-card px-2 py-1 text-[11px] font-semibold text-muted-foreground"
       >
-        <Icon name="close" size={14} />
-      </button>
+        {STAY_MINUTES_OPTIONS.map((option) => (
+          <option key={option.label} value={option.value ?? ""}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </li>
   );
 }

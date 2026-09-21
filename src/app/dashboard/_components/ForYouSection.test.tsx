@@ -66,6 +66,7 @@ describe("ForYouSection", () => {
           content: makeContent({ id: "1" }),
           addedAt: Date.now(),
           priority: null,
+          desiredStayMinutes: null,
         },
       ],
       hydrated: true,

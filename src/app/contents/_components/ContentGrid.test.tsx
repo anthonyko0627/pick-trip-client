@@ -162,6 +162,7 @@ describe("ContentGrid", () => {
           content: makeContent({ id: "1", name: "쌍계사" }),
           addedAt: Date.now(),
           priority: null,
+          desiredStayMinutes: null,
         },
       ],
       hydrated: true,

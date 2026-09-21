@@ -38,6 +38,7 @@ const makeBasketItem = (id: string): BasketItem => ({
   },
   addedAt: Date.now(),
   priority: null,
+  desiredStayMinutes: null,
 });
 
 const makeFavoriteContent = (id: string): Content => ({

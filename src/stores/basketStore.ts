@@ -13,6 +13,7 @@ interface BasketState {
   add: (content: Content) => void;
   remove: (contentId: string) => void;
   setPriority: (contentId: string, priority: BasketPriority | null) => void;
+  setStayMinutes: (contentId: string, minutes: number | null) => void;
   isInBasket: (contentId: string) => boolean;
   clear: () => void;
   // 외부에서 계산한 다음 배열로 통째로 교체한다.
@@ -34,9 +35,13 @@ export const useBasketStore = create<BasketState>((set, get) => ({
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed: BasketItem[] = JSON.parse(stored);
-        // priority가 없는 손상/구버전 데이터는 null로 보정한다.
+        // priority/desiredStayMinutes가 없는 손상/구버전 데이터는 null로 보정한다.
         set({
-          items: parsed.map((i) => ({ ...i, priority: i.priority ?? null })),
+          items: parsed.map((i) => ({
+            ...i,
+            priority: i.priority ?? null,
+            desiredStayMinutes: i.desiredStayMinutes ?? null,
+          })),
         });
       }
     } catch {
@@ -48,7 +53,15 @@ export const useBasketStore = create<BasketState>((set, get) => ({
   add: (content) => {
     const prev = get().items;
     if (prev.some((i) => i.content.id === content.id)) return;
-    const next = [...prev, { content, addedAt: Date.now(), priority: null }];
+    const next = [
+      ...prev,
+      {
+        content,
+        addedAt: Date.now(),
+        priority: null,
+        desiredStayMinutes: null,
+      },
+    ];
     persist(next);
     set({ items: next });
   },
@@ -56,6 +69,14 @@ export const useBasketStore = create<BasketState>((set, get) => ({
   setPriority: (contentId, priority) => {
     const next = get().items.map((i) =>
       i.content.id === contentId ? { ...i, priority } : i,
+    );
+    persist(next);
+    set({ items: next });
+  },
+
+  setStayMinutes: (contentId, minutes) => {
+    const next = get().items.map((i) =>
+      i.content.id === contentId ? { ...i, desiredStayMinutes: minutes } : i,
     );
     persist(next);
     set({ items: next });

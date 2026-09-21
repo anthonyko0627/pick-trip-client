@@ -53,13 +53,13 @@ describe("Footer", () => {
     ).toHaveAttribute("href", "/faq");
 
     const contact = screen.getByRole("link", { name: "서비스 문의" });
-    expect(contact).toHaveAttribute("href", "mailto:hyeonjun1968@naver.com");
+    expect(contact).toHaveAttribute("href", "mailto:support@pick-trip.app");
     expect(contact).toHaveAttribute("target", "_blank");
     expect(contact).toHaveAttribute("rel", "noopener noreferrer");
 
     expect(
-      screen.getByRole("link", { name: "hyeonjun1968@naver.com" }),
-    ).toHaveAttribute("href", "mailto:hyeonjun1968@naver.com");
+      screen.getByRole("link", { name: "support@pick-trip.app" }),
+    ).toHaveAttribute("href", "mailto:support@pick-trip.app");
     expect(screen.getByText(/평일 09:00 – 18:00 응답/)).toBeInTheDocument();
   });
 

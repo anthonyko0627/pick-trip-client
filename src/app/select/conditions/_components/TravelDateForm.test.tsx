@@ -87,7 +87,14 @@ describe("TravelDateForm — 바구니 유지", () => {
 
   it("마운트해도 담아둔 바구니를 비우지 않는다", () => {
     useBasketStore.setState({
-      items: [{ content: stub, addedAt: Date.now(), priority: null }],
+      items: [
+        {
+          content: stub,
+          addedAt: Date.now(),
+          priority: null,
+          desiredStayMinutes: null,
+        },
+      ],
       hydrated: true,
     });
 

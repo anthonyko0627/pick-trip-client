@@ -136,6 +136,43 @@ describe("useBasket", () => {
     expect(stored[0].priority).toBe("SHOULD");
   });
 
+  it("추가된 항목의 초기 희망 체류시간은 null이다", () => {
+    const { result } = renderHook(() => useBasket());
+    act(() => {
+      result.current.add(stub);
+    });
+    expect(result.current.items[0].desiredStayMinutes).toBeNull();
+  });
+
+  it("setStayMinutes로 항목의 희망 체류시간을 변경한다", () => {
+    const { result } = renderHook(() => useBasket());
+    act(() => {
+      result.current.add(stub);
+      result.current.setStayMinutes("1", 90);
+    });
+    expect(result.current.items[0].desiredStayMinutes).toBe(90);
+  });
+
+  it("setStayMinutes에 null을 전달하면 다시 AI가 정하는 상태로 돌아간다", () => {
+    const { result } = renderHook(() => useBasket());
+    act(() => {
+      result.current.add(stub);
+      result.current.setStayMinutes("1", 90);
+      result.current.setStayMinutes("1", null);
+    });
+    expect(result.current.items[0].desiredStayMinutes).toBeNull();
+  });
+
+  it("setStayMinutes 변경이 localStorage에 반영된다", () => {
+    const { result } = renderHook(() => useBasket());
+    act(() => {
+      result.current.add(stub);
+      result.current.setStayMinutes("1", 120);
+    });
+    const stored = JSON.parse(localStorage.getItem("pick-trip-basket") ?? "[]");
+    expect(stored[0].desiredStayMinutes).toBe(120);
+  });
+
   it("clear 호출 시 items가 빈 배열이 된다", () => {
     const { result } = renderHook(() => useBasket());
     act(() => {

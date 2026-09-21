@@ -63,7 +63,14 @@ describe("DashboardHero", () => {
 
   it("바구니에 콘텐츠가 있으면 담긴 개수를 보여준다", () => {
     useBasketStore.setState({
-      items: [{ content: stubContent, addedAt: Date.now(), priority: null }],
+      items: [
+        {
+          content: stubContent,
+          addedAt: Date.now(),
+          priority: null,
+          desiredStayMinutes: null,
+        },
+      ],
       hydrated: true,
     });
 

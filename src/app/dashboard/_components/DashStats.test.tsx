@@ -34,7 +34,14 @@ describe("DashStats", () => {
     mockPush.mockClear();
     localStorage.clear();
     useBasketStore.setState({
-      items: [{ content: stubContent, addedAt: Date.now(), priority: null }],
+      items: [
+        {
+          content: stubContent,
+          addedAt: Date.now(),
+          priority: null,
+          desiredStayMinutes: null,
+        },
+      ],
       hydrated: true,
     });
     mockUseFavorites.mockReturnValue({

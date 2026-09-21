@@ -87,7 +87,14 @@ describe("TripCourseList", () => {
   });
 
   it("바구니에 담긴 게 있으면 행 클릭 시 이동 대신 확인 UI를 보여준다", async () => {
-    mockItems = [{ content: stubContent, addedAt: Date.now(), priority: null }];
+    mockItems = [
+      {
+        content: stubContent,
+        addedAt: Date.now(),
+        priority: null,
+        desiredStayMinutes: null,
+      },
+    ];
     render(<TripCourseList />);
 
     const course = TRIP_COURSES[0];
@@ -106,7 +113,14 @@ describe("TripCourseList", () => {
   });
 
   it("확인 UI가 뜬 상태에서 같은 행을 다시 누르면 확인 없이 이동하지 않는다", async () => {
-    mockItems = [{ content: stubContent, addedAt: Date.now(), priority: null }];
+    mockItems = [
+      {
+        content: stubContent,
+        addedAt: Date.now(),
+        priority: null,
+        desiredStayMinutes: null,
+      },
+    ];
     render(<TripCourseList />);
 
     const course = TRIP_COURSES[0];
@@ -126,7 +140,14 @@ describe("TripCourseList", () => {
   });
 
   it("확인 UI에서 취소를 누르면 이동하지 않고 확인 UI가 닫힌다", async () => {
-    mockItems = [{ content: stubContent, addedAt: Date.now(), priority: null }];
+    mockItems = [
+      {
+        content: stubContent,
+        addedAt: Date.now(),
+        priority: null,
+        desiredStayMinutes: null,
+      },
+    ];
     render(<TripCourseList />);
 
     await userEvent.click(rowButton(TRIP_COURSES[0]));

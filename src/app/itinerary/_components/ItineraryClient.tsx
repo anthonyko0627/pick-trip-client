@@ -613,6 +613,9 @@ export function ItineraryClient({
                 ...(item.content.imageUrl
                   ? { thumbnailUrl: item.content.imageUrl }
                   : {}),
+                ...(item.desiredStayMinutes
+                  ? { desiredStayMinutes: item.desiredStayMinutes }
+                  : {}),
               },
               token,
             );

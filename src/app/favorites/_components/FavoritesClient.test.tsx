@@ -155,8 +155,18 @@ describe("FavoritesClient", () => {
     mockUseAuth.mockReturnValue({ status: "authenticated", user: null });
     useBasketStore.setState({
       items: [
-        { content: makeContent({ id: "1" }), addedAt: 1, priority: null },
-        { content: makeContent({ id: "2" }), addedAt: 2, priority: null },
+        {
+          content: makeContent({ id: "1" }),
+          addedAt: 1,
+          priority: null,
+          desiredStayMinutes: null,
+        },
+        {
+          content: makeContent({ id: "2" }),
+          addedAt: 2,
+          priority: null,
+          desiredStayMinutes: null,
+        },
       ],
       hydrated: true,
     });

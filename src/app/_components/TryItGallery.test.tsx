@@ -133,8 +133,18 @@ describe("TryItGallery", () => {
   it("바구니에 담기면 CTA가 담은 개수를 반영한다", () => {
     useBasketStore.setState({
       items: [
-        { content: sample[0], addedAt: 1, priority: null },
-        { content: sample[1], addedAt: 2, priority: null },
+        {
+          content: sample[0],
+          addedAt: 1,
+          priority: null,
+          desiredStayMinutes: null,
+        },
+        {
+          content: sample[1],
+          addedAt: 2,
+          priority: null,
+          desiredStayMinutes: null,
+        },
       ],
       hydrated: true,
     });
@@ -157,7 +167,14 @@ describe("TryItGallery", () => {
     ).toBeInTheDocument();
 
     useBasketStore.setState({
-      items: [{ content: sample[0], addedAt: 1, priority: null }],
+      items: [
+        {
+          content: sample[0],
+          addedAt: 1,
+          priority: null,
+          desiredStayMinutes: null,
+        },
+      ],
       hydrated: true,
     });
     const client = new QueryClient({

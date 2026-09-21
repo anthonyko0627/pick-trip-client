@@ -25,10 +25,18 @@ function content(
 }
 
 function setBasket(
-  items: { content: Content; priority: BasketPriority | null }[],
+  items: {
+    content: Content;
+    priority: BasketPriority | null;
+    desiredStayMinutes?: number | null;
+  }[],
 ) {
   useBasketStore.setState({
-    items: items.map((i) => ({ ...i, addedAt: Date.now() })),
+    items: items.map((i) => ({
+      ...i,
+      addedAt: Date.now(),
+      desiredStayMinutes: i.desiredStayMinutes ?? null,
+    })),
     hydrated: true,
   });
 }
@@ -52,7 +60,11 @@ describe("PreGenerateView — 여행 조건 표시", () => {
   it("지역·출발일·기간·동행 조건을 사람이 읽는 라벨로 보여준다", () => {
     setBasket([
       { content: content("1", "쌍계사"), priority: "MUST" },
-      { content: content("2", "화개장터"), priority: null },
+      {
+        content: content("2", "화개장터"),
+        priority: null,
+        desiredStayMinutes: null,
+      },
     ]);
 
     render(<PreGenerateView {...baseProps} />);
@@ -85,7 +97,11 @@ describe("PreGenerateView — 생성 버튼 활성 조건", () => {
   it("지역·출발일이 있고 담은 콘텐츠가 2개 이상이면 활성화되고 클릭 시 onGenerate를 호출한다", async () => {
     setBasket([
       { content: content("1", "쌍계사"), priority: "MUST" },
-      { content: content("2", "화개장터"), priority: null },
+      {
+        content: content("2", "화개장터"),
+        priority: null,
+        desiredStayMinutes: null,
+      },
     ]);
 
     render(<PreGenerateView {...baseProps} />);
@@ -116,7 +132,11 @@ describe("PreGenerateView — 일정 생성 옵션", () => {
   beforeEach(() => {
     setBasket([
       { content: content("1", "쌍계사"), priority: "MUST" },
-      { content: content("2", "화개장터"), priority: null },
+      {
+        content: content("2", "화개장터"),
+        priority: null,
+        desiredStayMinutes: null,
+      },
     ]);
   });
 
@@ -184,8 +204,16 @@ describe("PreGenerateView — 일정 생성 옵션", () => {
   it("시작 장소로 고른 항목을 바구니에서 지우면 선택이 'AI가 자동으로 정함'으로 되돌아간다", async () => {
     setBasket([
       { content: content("1", "쌍계사"), priority: "MUST" },
-      { content: content("2", "화개장터"), priority: null },
-      { content: content("3", "최참판댁"), priority: null },
+      {
+        content: content("2", "화개장터"),
+        priority: null,
+        desiredStayMinutes: null,
+      },
+      {
+        content: content("3", "최참판댁"),
+        priority: null,
+        desiredStayMinutes: null,
+      },
     ]);
     render(<PreGenerateView {...baseProps} />);
 
@@ -249,11 +277,62 @@ describe("PreGenerateView — 담은 콘텐츠", () => {
   });
 });
 
+describe("PreGenerateView — 체류 시간", () => {
+  it("기본값은 'AI가 정함'이다", () => {
+    setBasket([
+      { content: content("1", "쌍계사"), priority: "MUST" },
+      { content: content("2", "화개장터"), priority: null },
+    ]);
+
+    render(<PreGenerateView {...baseProps} />);
+
+    expect(screen.getByLabelText("쌍계사 체류 시간")).toHaveValue("");
+  });
+
+  it("체류 시간을 고르면 바구니 항목의 desiredStayMinutes가 바뀐다", async () => {
+    setBasket([
+      { content: content("1", "쌍계사"), priority: "MUST" },
+      { content: content("2", "화개장터"), priority: null },
+    ]);
+
+    render(<PreGenerateView {...baseProps} />);
+
+    await userEvent.selectOptions(
+      screen.getByLabelText("쌍계사 체류 시간"),
+      "1시간 30분",
+    );
+
+    expect(
+      useBasketStore.getState().items.find((i) => i.content.id === "1")
+        ?.desiredStayMinutes,
+    ).toBe(90);
+  });
+
+  it("'AI가 정함'을 다시 고르면 desiredStayMinutes가 null로 돌아간다", async () => {
+    setBasket([{ content: content("1", "쌍계사"), priority: "MUST" }]);
+
+    render(<PreGenerateView {...baseProps} />);
+
+    const select = screen.getByLabelText("쌍계사 체류 시간");
+    await userEvent.selectOptions(select, "2시간");
+    await userEvent.selectOptions(select, "AI가 정함");
+
+    expect(
+      useBasketStore.getState().items.find((i) => i.content.id === "1")
+        ?.desiredStayMinutes,
+    ).toBeNull();
+  });
+});
+
 describe("PreGenerateView — 파생 지표", () => {
   it("담은 콘텐츠 수, 여행 기간(=박+1), 하루 평균 장소 수를 계산해 보여준다", () => {
     setBasket([
       { content: content("1", "쌍계사"), priority: "MUST" },
-      { content: content("2", "화개장터"), priority: null },
+      {
+        content: content("2", "화개장터"),
+        priority: null,
+        desiredStayMinutes: null,
+      },
       { content: content("3", "최참판댁"), priority: "SHOULD" },
     ]);
 
@@ -271,7 +350,11 @@ describe("PreGenerateView — 오류 상태", () => {
   it("error가 있으면 메시지와 다시 시도 버튼을 보여주고 클릭 시 onGenerate를 호출한다", async () => {
     setBasket([
       { content: content("1", "쌍계사"), priority: "MUST" },
-      { content: content("2", "화개장터"), priority: null },
+      {
+        content: content("2", "화개장터"),
+        priority: null,
+        desiredStayMinutes: null,
+      },
     ]);
 
     render(
