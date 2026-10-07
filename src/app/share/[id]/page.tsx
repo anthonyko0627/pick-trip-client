@@ -60,6 +60,12 @@ interface SharePageProps {
   params: Promise<{ id: string }>;
 }
 
+// 공유 링크는 링크를 받은 사람만 보는 페이지라 검색 결과에 노출하지 않는다.
+// robots.txt로 /share를 막으면 크롤러가 본문을 읽지 못해 이 규칙도 볼 수 없고
+// 링크 미리보기 스크래퍼까지 함께 막힐 수 있어, robots 메타태그로 처리한다.
+// OG 메타데이터는 그대로 두므로 카카오톡 등의 공유 카드는 유지된다.
+const NOINDEX: Metadata["robots"] = { index: false, follow: false };
+
 export async function generateMetadata({
   params,
 }: SharePageProps): Promise<Metadata> {
@@ -70,7 +76,7 @@ export async function generateMetadata({
     data = await getShared(token);
   } catch {
     // 만료되었거나 잘못된 링크. 페이지 본문과 같은 안내 성격의 메타데이터를 준다.
-    return { title: "공유된 일정" };
+    return { title: "공유된 일정", robots: NOINDEX };
   }
 
   const placeCount = data.days.reduce((sum, day) => sum + day.items.length, 0);
@@ -78,6 +84,7 @@ export async function generateMetadata({
   return {
     title: data.title,
     description: `${REGION_LABELS[data.region]} ${formatDurationText(data.duration)} 여행 일정 · ${data.travelDate} 출발 · 여행지 ${placeCount}곳`,
+    robots: NOINDEX,
   };
 }
 
