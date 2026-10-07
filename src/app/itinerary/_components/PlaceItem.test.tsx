@@ -65,6 +65,33 @@ describe("PlaceItem", () => {
     expect(screen.queryByText(/머무는 시간/)).not.toBeInTheDocument();
   });
 
+  it("v3: inclinePenaltyMinutes가 0보다 크면 오르막 캡션을 표시한다", () => {
+    render(
+      <PlaceItem
+        item={makeItem({
+          elevationGainMeters: 120.5,
+          inclinePenaltyMinutes: 12,
+        })}
+      />,
+    );
+
+    expect(
+      screen.getByText("오르막 반영 +12분 · 상승 121m"),
+    ).toBeInTheDocument();
+  });
+
+  it("v3: inclinePenaltyMinutes가 0이거나 없으면 오르막 캡션을 표시하지 않는다", () => {
+    const { rerender } = render(
+      <PlaceItem
+        item={makeItem({ elevationGainMeters: 0, inclinePenaltyMinutes: 0 })}
+      />,
+    );
+    expect(screen.queryByText(/오르막 반영/)).not.toBeInTheDocument();
+
+    rerender(<PlaceItem item={makeItem()} />);
+    expect(screen.queryByText(/오르막 반영/)).not.toBeInTheDocument();
+  });
+
   it("방문 시각이 없어도 시각 열 placeholder를 유지한다", () => {
     render(<PlaceItem item={makeItem({ startTime: null, endTime: null })} />);
 

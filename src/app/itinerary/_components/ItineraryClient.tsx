@@ -51,6 +51,8 @@ import {
   COMPANION_CONDITION_TO_SERVER,
   type CompanionCondition,
 } from "@/types/travel-condition";
+
+import { createLoginPreviewScheduler } from "../_lib/loginPreviewSchedule";
 import { AdjustmentsNotice } from "./AdjustmentsNotice";
 import { CongestionSuggestions, suggestionKey } from "./CongestionSuggestions";
 import { DayMapPanel } from "./DayMapPanel";
@@ -332,6 +334,7 @@ function buildLoginPreviewItinerary(
   region: Region,
   startDate: string,
   nights: number,
+  dayStartTimes?: (string | null)[],
 ): ItineraryGenerateResponse {
   const dayCount = nights + 1;
   // 백엔드는 dayIndex를 1부터 채번하므로(DayCard.tsx 참고) 미리보기도 동일하게 맞춘다.
@@ -341,8 +344,14 @@ function buildLoginPreviewItinerary(
     items: [] as ItineraryGenerateResponse["days"][number]["items"],
   }));
 
+  // 사용자가 시작 시각을 지정했을 때만 그 시각이 반영된 것처럼 가짜 시간대를
+  // 붙인다. 지정 안 했으면 null을 주므로 시각 칸은 "·" 자리표시로 남는다.
+  const nextTimeRange = createLoginPreviewScheduler(dayStartTimes);
+
   items.forEach((item, index) => {
-    const day = days[index % dayCount];
+    const dayIndex = index % dayCount;
+    const day = days[dayIndex];
+    const timeRange = nextTimeRange(dayIndex);
     day.items.push({
       itemId: `preview-item-${index}`,
       contentId: item.content.id,
@@ -350,6 +359,8 @@ function buildLoginPreviewItinerary(
       order: day.items.length,
       reason: "담아주신 콘텐츠를 기반으로 만든 미리보기 일정입니다.",
       pinned: item.priority === "MUST",
+      startTime: timeRange?.startTime,
+      endTime: timeRange?.endTime,
     });
   });
 
@@ -665,6 +676,7 @@ export function ItineraryClient({
             parsedRegions[0],
             startDate,
             parsedNights,
+            options?.dayStartTimes,
           );
           // 로그인 이후 흐름과 동일하게 로컬 바구니를 비운다. 스냅샷은 ref에
           // 남겨 로그인/다시 생성으로 흐름을 이어갈 때만 복원한다.

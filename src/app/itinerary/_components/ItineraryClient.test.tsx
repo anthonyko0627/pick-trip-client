@@ -1216,6 +1216,91 @@ describe("ItineraryClient", () => {
     expect(mockClearBasket).toHaveBeenCalled();
   });
 
+  it("v3: 일차 시작 시각을 지정했는데 AUTH_REQUIRED로 실패해도, 로컬 미리보기에 그 시각이 가짜로 반영된다", async () => {
+    mockUpdateBasketConditions.mockResolvedValue({
+      basketId: "basket-1",
+      conditions: {
+        region: "HADONG",
+        travelDate: "2026-08-01",
+        duration: 1,
+        companions: [],
+      },
+      items: [],
+    });
+    mockAddBasketItem.mockResolvedValue({
+      itemId: "server-item-1",
+      contentId: "content-1",
+      title: "쌍계사",
+      priority: "MUST_VISIT",
+    });
+    mockGenerateItinerary.mockRejectedValue(
+      new ApiError(401, "로그인이 필요합니다.", "AUTH_REQUIRED"),
+    );
+
+    renderWithClient(
+      <ItineraryClient
+        regions="HADONG"
+        startDate="2026-08-01"
+        nights="1"
+        companions=""
+      />,
+    );
+
+    await userEvent.selectOptions(
+      await screen.findByLabelText("1일차"),
+      "10:30",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "일정 생성하기" }),
+    );
+
+    await screen.findByText("쌍계사");
+    // 실제 스케줄러 없이 지정한 시작 시각부터 가짜로 이어 붙인 값이다.
+    // 일차 헤더(DayCard "출발")와 장소 카드(PlaceItem) 둘 다에 나온다.
+    expect(screen.getAllByText("10:30").length).toBeGreaterThan(0);
+  });
+
+  it("v3: 시작 시각을 안 바꾸고 AUTH_REQUIRED로 실패하면, 로컬 미리보기에 방문 시각을 지어내지 않는다", async () => {
+    mockUpdateBasketConditions.mockResolvedValue({
+      basketId: "basket-1",
+      conditions: {
+        region: "HADONG",
+        travelDate: "2026-08-01",
+        duration: 1,
+        companions: [],
+      },
+      items: [],
+    });
+    mockAddBasketItem.mockResolvedValue({
+      itemId: "server-item-1",
+      contentId: "content-1",
+      title: "쌍계사",
+      priority: "MUST_VISIT",
+    });
+    mockGenerateItinerary.mockRejectedValue(
+      new ApiError(401, "로그인이 필요합니다.", "AUTH_REQUIRED"),
+    );
+
+    renderWithClient(
+      <ItineraryClient
+        regions="HADONG"
+        startDate="2026-08-01"
+        nights="1"
+        companions=""
+      />,
+    );
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "일정 생성하기" }),
+    );
+
+    // 이동·운영 시간을 모르는 근사치라, 사용자가 시작 시각을 건드리지 않았으면
+    // 진짜 일정처럼 보이는 시각표를 만들지 않고 "·" 자리표시만 남긴다.
+    await screen.findByText("쌍계사");
+    expect(screen.queryByText("09:00")).not.toBeInTheDocument();
+    expect(screen.queryByText("출발")).not.toBeInTheDocument();
+  });
+
   it("시작 장소를 지정했는데 AUTH_REQUIRED로 실패하면, 로컬 목데이터 미리보기에는 출발 배지를 붙이지 않는다", async () => {
     mockUpdateBasketConditions.mockResolvedValue({
       basketId: "basket-1",

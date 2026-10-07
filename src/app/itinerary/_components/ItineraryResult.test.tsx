@@ -18,6 +18,7 @@ vi.mock("@/hooks/useItineraryMapData", () => ({
 // 실제 ItineraryMap을 그리므로 카카오 SDK를 모킹해둔다.
 vi.mock("@/lib/kakaoMapLoader", () => ({
   loadKakaoMaps: () => Promise.resolve(),
+  onKakaoMapsLateReady: () => () => {},
 }));
 
 const makeDay = (overrides: Partial<Day> = {}): Day => ({

@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { KAKAO_MAPS_CDN_HOST, KAKAO_MAPS_SDK_HOST } from "./src/lib/kakaoMap";
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
@@ -14,25 +16,40 @@ const IMAGE_HOSTS =
   "https://tong.visitkorea.or.kr http://tong.visitkorea.or.kr";
 
 // Kakao 지도 SDK 예외. SDK 진입점은 dapi.kakao.com 이고, 이후 지도 엔진
-// 스크립트·스타일·래스터 타일·마커 스프라이트를 Daum CDN(*.daumcdn.net)에서
-// 받아온다. 길찾기(apis-navi.kakaomobility.com)는 서버 Route Handler
-// (/api/directions)에서만 호출하므로 REST 키가 브라우저에 노출되지 않고
-// connect-src 도 dapi.kakao.com 만 열면 된다. JS 키는 Kakao 콘솔에서 도메인
-// 제한을 건다.
+// 스크립트·스타일·래스터 타일·마커 스프라이트를 Kakao CDN에서 받아온다.
+// 길찾기(apis-navi.kakaomobility.com)는 서버 Route Handler(/api/directions)에서만
+// 호출하므로 REST 키가 브라우저에 노출되지 않고 connect-src 도 dapi.kakao.com 만
+// 열면 된다. JS 키는 Kakao 콘솔에서 도메인 제한을 건다.
+//
+// 호스트는 sdk.js(4.5.28)가 실제로 참조하는 값에서 뽑았다. 엔진·부가 라이브러리·
+// 로드뷰 스크립트는 RESOURCE_DOMAIN.STATIC(t1.kakaocdn.net), 래스터 타일은
+// mts.kakaocdn.net, 스카이뷰 타일은 map.kakaocdn.net, 실시간 교통 오버레이는
+// ctt-image.kakaocdn.net 이다. 과거 *.daumcdn.net 만 열어 두어 엔진 스크립트가
+// script-src-elem 위반으로 차단돼 kakao.maps.load 콜백이 끝내 오지 않았고,
+// 화면이 "지도를 불러오는 중…"에 영구히 머물렀다. daumcdn 항목은 구버전 SDK
+// 경로가 남아 있을 수 있어 호환용으로 함께 둔다.
+//
 // SDK 진입점(dapi.kakao.com)은 https지만, 그 다음 로드하는 지도 엔진
-// 스크립트·스타일(t1.daumcdn.net)은 프로토콜 상대 URL이라 페이지 origin을
-// 따라간다. https가 없는 dev(http://localhost)에서는 http로 요청되므로
-// script-src/style-src에도 http 스킴을 함께 열어야 kakao.maps.load가 끝난다.
-const KAKAO_SCRIPT_HOSTS = `https://dapi.kakao.com https://t1.daumcdn.net https://*.daumcdn.net${
-  isDev ? " http://t1.daumcdn.net http://*.daumcdn.net" : ""
+// 스크립트·스타일은 프로토콜 상대 URL이라 페이지 origin을 따라간다. https가
+// 없는 dev(http://localhost)에서는 http로 요청되므로 script-src/style-src에도
+// http 스킴을 함께 열어야 kakao.maps.load가 끝난다.
+//
+// SDK·엔진 CDN 호스트는 프리로드(KakaoMapsPreload)·로더와 같은 상수에서 가져온다.
+// 한쪽만 바뀌어 CSP가 엔진 스크립트를 다시 막는 일이 없게 하기 위해서다.
+const SDK = KAKAO_MAPS_SDK_HOST;
+const CDN = KAKAO_MAPS_CDN_HOST;
+const KAKAO_SCRIPT_HOSTS = `https://${SDK} https://${CDN} https://t1.daumcdn.net https://*.daumcdn.net${
+  isDev ? ` http://${CDN} http://t1.daumcdn.net http://*.daumcdn.net` : ""
 }`;
-const KAKAO_STYLE_HOSTS = `https://t1.daumcdn.net https://*.daumcdn.net${
-  isDev ? " http://t1.daumcdn.net http://*.daumcdn.net" : ""
+const KAKAO_STYLE_HOSTS = `https://${CDN} https://t1.daumcdn.net https://*.daumcdn.net${
+  isDev ? ` http://${CDN} http://t1.daumcdn.net http://*.daumcdn.net` : ""
 }`;
-const KAKAO_IMG_HOSTS = `https://*.daumcdn.net https://t1.daumcdn.net https://dapi.kakao.com${
-  isDev ? " http://*.daumcdn.net" : ""
+const KAKAO_IMG_HOSTS = `https://mts.kakaocdn.net https://map.kakaocdn.net https://ctt-image.kakaocdn.net https://${CDN} https://*.daumcdn.net https://t1.daumcdn.net https://${SDK}${
+  isDev
+    ? ` http://mts.kakaocdn.net http://map.kakaocdn.net http://ctt-image.kakaocdn.net http://${CDN} http://*.daumcdn.net`
+    : ""
 }`;
-const KAKAO_CONNECT_HOSTS = "https://dapi.kakao.com";
+const KAKAO_CONNECT_HOSTS = `https://${SDK}`;
 
 // 브라우저 리소스는 Kakao 지도(위 KAKAO_* 예외)를 빼면 전부 same-origin이다.
 // - 스크립트/스타일: Next.js와 next/font가 셀프 호스팅한다. (Kakao 지도 SDK만 외부 CDN)
@@ -95,6 +112,11 @@ const nextConfig: NextConfig = {
     "172.31.*.*",
   ],
   images: {
+    // Vercel Hobby 플랜의 Image Optimization(Transformations) 월 한도를 넘기면
+    // /_next/image 가 402(OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED)를 돌려줘
+    // 모든 콘텐츠 이미지가 깨진다(#149). 최적화를 끄고 원본 URL을 그대로 서빙한다.
+    // 아래 remotePatterns·minimumCacheTTL 은 다시 켤 때를 위해 남겨둔다.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "http",

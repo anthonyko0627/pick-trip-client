@@ -6,7 +6,14 @@ import { REGIONS } from "@/types/region";
 
 // 색인 대상 정적 공개 라우트. 인증·개인화 라우트는 robots.ts에서 disallow하므로
 // 여기에 넣지 않는다.
-const PUBLIC_PATHS = ["/", "/contents", "/explore", "/privacy", "/terms"];
+const PUBLIC_PATHS = [
+  "/",
+  "/account-deletion",
+  "/contents",
+  "/explore",
+  "/privacy",
+  "/terms",
+];
 
 // 목록 페이지네이션이 예상과 다르게 끝나지 않을 때 빌드가 멈추지 않도록 두는
 // 상한. 지역당 기본 20개 × 3지역 × 50페이지가 최대치다.

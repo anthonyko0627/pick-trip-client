@@ -39,6 +39,25 @@ export function formatTimeRange(
   return start || end || null;
 }
 
+/** "09:30" → 570(자정 기준 분). 값이 없거나 형식이 어긋나면 null. */
+export function timeToMinutes(time?: string | null): number | null {
+  if (!time) return null;
+  const [h, m] = time.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+}
+
+/**
+ * 570 → "09:30". 하루(1440분)를 넘어도 자정으로 되감지 않는다 — 되감으면 앞
+ * 스톱보다 이른 시각으로 보여 시간이 거꾸로 흐르는 것처럼 된다. 하루를 넘는
+ * 값을 화면에 안 띄우는 건 호출부 몫이다.
+ */
+export function minutesToTime(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
 /**
  * "09:30","11:00" → 90(분). 한쪽이라도 없거나 형식이 어긋나거나 0 이하면 null.
  * 장소 카드의 "머무는 시간"과 여행 요약의 "총 머무는 시간"이 같은 규칙을 쓰도록 공유한다.
@@ -47,11 +66,10 @@ export function stayMinutes(
   start?: string | null,
   end?: string | null,
 ): number | null {
-  if (!start || !end) return null;
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return null;
-  const diff = eh * 60 + em - (sh * 60 + sm);
+  const startMinutes = timeToMinutes(start);
+  const endMinutes = timeToMinutes(end);
+  if (startMinutes === null || endMinutes === null) return null;
+  const diff = endMinutes - startMinutes;
   return diff > 0 ? diff : null;
 }
 
@@ -168,6 +186,10 @@ export function clearDaySchedule(day: Day): Day {
       ...item,
       startTime: null,
       endTime: null,
+      // v3: "이전 스톱"이 순서 변경으로 달라져 값이 실제와 어긋난다. 지우면
+      // 조회 시 서버가 0(=표시 안 함)으로 내려준다. 재계산은 다시 생성 몫.
+      elevationGainMeters: undefined,
+      inclinePenaltyMinutes: undefined,
     })),
   };
 }
@@ -190,6 +212,23 @@ export function toSaveDays(days: Day[]): DayRequest[] {
       pinned: item.pinned ?? false,
       startTime: item.startTime ?? undefined,
       endTime: item.endTime ?? undefined,
+      elevationGainMeters: item.elevationGainMeters ?? undefined,
+      inclinePenaltyMinutes: item.inclinePenaltyMinutes ?? undefined,
     })),
   }));
+}
+
+/**
+ * "오르막 반영 +12분 · 상승 121m". inclinePenaltyMinutes가 0/undefined면
+ * null(=표시 안 함) — 평지·자동차·도보 아닌 구간과 구분하지 않는다(서버가
+ * 이미 같은 0으로 내려준다). 이 값은 startTime/endTime/totalTravelMinutes에
+ * 이미 반영된 분해값이라, 화면의 이동시간 합계에 더하면 안 된다.
+ */
+export function formatIncline(
+  inclinePenaltyMinutes?: number | null,
+  elevationGainMeters?: number | null,
+): string | null {
+  if (!inclinePenaltyMinutes || inclinePenaltyMinutes <= 0) return null;
+  const gain = Math.round(elevationGainMeters ?? 0);
+  return `오르막 반영 +${inclinePenaltyMinutes}분 · 상승 ${gain}m`;
 }

@@ -50,6 +50,9 @@ function withSyntheticIds(days: RawGeneratedDay[]): Day[] {
       notes: item.notes ?? [],
       addedByAi: item.addedByAi,
       addedForRest: item.addedForRest,
+      // v3: 구버전 백엔드는 안 보내므로 "해당 없음"과 같은 뜻인 0으로 채운다.
+      elevationGainMeters: item.elevationGainMeters ?? 0,
+      inclinePenaltyMinutes: item.inclinePenaltyMinutes ?? 0,
     })),
   }));
 }

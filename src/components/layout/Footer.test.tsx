@@ -63,17 +63,19 @@ describe("Footer", () => {
     expect(screen.getByText(/평일 09:00 – 18:00 응답/)).toBeInTheDocument();
   });
 
-  it("하단 바에는 법적 링크가 이용약관, 개인정보처리방침 2개뿐이다", () => {
+  it("하단 바에는 법적 링크가 이용약관, 개인정보처리방침, 계정 삭제 안내 3개뿐이다", () => {
     render(<Footer />);
 
     const legalNav = screen.getByRole("navigation", { name: "약관 및 정책" });
     const links = within(legalNav).getAllByRole("link");
 
-    expect(links).toHaveLength(2);
+    expect(links).toHaveLength(3);
     expect(links[0]).toHaveTextContent("이용약관");
     expect(links[0]).toHaveAttribute("href", "/terms");
     expect(links[1]).toHaveTextContent("개인정보처리방침");
     expect(links[1]).toHaveAttribute("href", "/privacy");
+    expect(links[2]).toHaveTextContent("계정 삭제 안내");
+    expect(links[2]).toHaveAttribute("href", "/account-deletion");
   });
 
   it("저작권 문구를 보여준다", () => {

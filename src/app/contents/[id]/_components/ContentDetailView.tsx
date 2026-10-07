@@ -8,10 +8,9 @@ import { useBasket } from "@/hooks/useBasket";
 import { useFavoriteHeart } from "@/hooks/useFavoriteHeart";
 import { useRecentViews } from "@/hooks/useRecentViews";
 import { splitBrLines, visitorStatsDetailRow } from "@/lib/content";
-import { isValidKoreaCoord } from "@/lib/geo";
 import type { ContentDetail } from "@/types/content";
 import { REGION_LABELS } from "@/types/region";
-
+import { hasContentCoord } from "../_lib/contentCoord";
 import { ContentGallery } from "./ContentGallery";
 import { ContentMap } from "./ContentMap";
 import { NearbyContents } from "./NearbyContents";
@@ -113,7 +112,7 @@ export function ContentDetailView({
     ...content.imageUrls,
   ];
 
-  const hasCoord = isValidKoreaCoord(content.latitude, content.longitude);
+  const hasCoord = hasContentCoord(content);
 
   const parkingText =
     content.parking === null ? null : content.parking ? "가능" : "불가능";

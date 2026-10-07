@@ -31,6 +31,8 @@ const LEGAL_NAV = [
   { href: "/terms", label: "이용약관", strong: false },
   // 개인정보처리방침은 고지 의무가 있는 문서라 나머지 링크보다 눈에 띄게 둔다.
   { href: "/privacy", label: "개인정보처리방침", strong: true },
+  // 스토어 심사에서 요구하는 계정 삭제 안내 URL이라 공개 위치에 링크를 둔다.
+  { href: "/account-deletion", label: "계정 삭제 안내", strong: false },
 ] as const;
 
 const COLUMN_TITLE_CLASS =

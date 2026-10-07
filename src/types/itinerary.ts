@@ -29,7 +29,16 @@ export interface ItineraryGenerateRequest {
   // 만들 일정안의 이동수단. 기본 ["CAR"], 중복 제거, 최대 4개. 지정한 수만큼
   // variants[]에 안이 하나씩 나온다.
   travelModes?: TravelMode[];
+  // v3: 일차별 시작 시각("HH:mm"). 인덱스 = 일차(0 → 1일차). null이나 짧은
+  // 배열의 빈 자리는 기본 09:00. DAY_START_TIME_MIN~MAX 밖이면 서버가 400
+  // VALIDATION_FAILED로 거절(잘라내지 않음). 안 보내면 전부 09:00(기존과 동일).
+  dayStartTimes?: (string | null)[];
 }
+
+// v3: dayStartTimes 입력 UI가 고를 수 있는 범위. 벗어난 값은 서버가 400으로
+// 거절하므로, 선택지 자체를 이 범위로 제한해 오류를 사전에 막는다.
+export const DAY_START_TIME_MIN = "05:00";
+export const DAY_START_TIME_MAX = "18:00";
 
 // ── 저장/수정 요청 공용 (POST save, PATCH modify) ──────────────────
 export interface SaveItineraryRequest {
@@ -58,6 +67,11 @@ export interface ItemRequest {
   // 미리보기에서 받은 방문 시각("HH:mm")을 그대로 되돌려 저장한다.
   startTime?: string;
   endTime?: string;
+  // v3: 미리보기에서 받은 오르막 정보를 그대로 되돌려 저장한다. 순서를 바꿔
+  // "이전 스톱"이 달라졌으면 생략(undefined)한다 — 서버는 저장 시 재계산하지
+  // 않으므로 어긋난 값을 그대로 실어 보내면 안 된다(clearDaySchedule 참고).
+  elevationGainMeters?: number;
+  inclinePenaltyMinutes?: number;
 }
 
 // ── 조회/저장/수정 응답 공용 (GET, POST save, PATCH modify) ──────────
@@ -105,6 +119,14 @@ export interface Item {
   // addedForRest: TRANSIT 안에서 누적 도보 90분 이상 또는 누적 상승고도
   // 200m 이상일 때 근처 카페를 30분 휴식 스톱으로 자동 삽입했을 때.
   addedForRest?: boolean;
+  // v3: 이전 스톱 → 이 스톱(도착 구간) 기준 오르막 정보. 하루 첫 스톱·CAR
+  // 일정안·도보가 아닌 TRANSIT 구간·고도 조회 실패 시 0(값이 없다는 뜻이
+  // 아니라 "해당 없음"). inclinePenaltyMinutes는 이미 startTime/endTime/
+  // totalTravelMinutes에 반영돼 있으므로 화면 합계에 다시 더하지 않는다.
+  // 조회/저장 응답에도 같은 이름으로 있다(값이 없으면 0). 구버전 백엔드·기존
+  // 테스트 픽스처 호환을 위해 옵셔널로 둔다.
+  elevationGainMeters?: number;
+  inclinePenaltyMinutes?: number;
 }
 
 // ── 생성 응답 (POST /api/v1/itineraries/generate) ───────────────────
@@ -132,6 +154,9 @@ export interface RawGeneratedItem {
   notes: string[];
   addedByAi?: boolean;
   addedForRest?: boolean;
+  // v3: 옵셔널 — 구버전 백엔드는 이 필드를 안 보낸다.
+  elevationGainMeters?: number;
+  inclinePenaltyMinutes?: number;
 }
 
 // ── 일정안 비교 지표 (variants[].metrics) ────────────────────────────

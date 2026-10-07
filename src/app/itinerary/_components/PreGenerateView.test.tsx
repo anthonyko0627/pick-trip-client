@@ -232,6 +232,51 @@ describe("PreGenerateView — 일정 생성 옵션", () => {
       travelModes: ["CAR", "TRANSIT"],
     });
   });
+
+  it("v3: 일차 수만큼 시작 시각 select를 09:00 기본값으로 보여주고, 아무것도 안 바꾸면 dayStartTimes를 생략한다", async () => {
+    render(<PreGenerateView {...baseProps} />);
+
+    // nights="1" → 1박 2일 → 1일차·2일차 두 개. "AI 기본" 같은 별도 표시
+    // 없이 시각 값 자체("09:00")가 기본으로 보인다.
+    expect(screen.getByLabelText("1일차")).toHaveValue("09:00");
+    expect(screen.getByLabelText("2일차")).toHaveValue("09:00");
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "일정 생성하기" }),
+    );
+    expect(baseProps.onGenerate).toHaveBeenCalledWith({
+      travelModes: ["CAR", "TRANSIT"],
+    });
+  });
+
+  it("v3: 일차 시작 시각을 고르면 나머지 일차는 null로 채운 dayStartTimes를 실어 보낸다", async () => {
+    render(<PreGenerateView {...baseProps} />);
+
+    await userEvent.selectOptions(screen.getByLabelText("1일차"), "10:30");
+    await userEvent.click(
+      screen.getByRole("button", { name: "일정 생성하기" }),
+    );
+
+    expect(baseProps.onGenerate).toHaveBeenCalledWith({
+      travelModes: ["CAR", "TRANSIT"],
+      dayStartTimes: ["10:30", null],
+    });
+  });
+
+  it("v3: 시작 시각을 09:00으로 되돌리면 다시 요청에서 빠진다", async () => {
+    render(<PreGenerateView {...baseProps} />);
+
+    const select = screen.getByLabelText("1일차");
+    await userEvent.selectOptions(select, "10:30");
+    await userEvent.selectOptions(select, "09:00");
+    await userEvent.click(
+      screen.getByRole("button", { name: "일정 생성하기" }),
+    );
+
+    expect(baseProps.onGenerate).toHaveBeenCalledWith({
+      travelModes: ["CAR", "TRANSIT"],
+    });
+  });
 });
 
 describe("PreGenerateView — 담은 콘텐츠", () => {

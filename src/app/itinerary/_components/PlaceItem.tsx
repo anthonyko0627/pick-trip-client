@@ -3,7 +3,11 @@
 import { useState } from "react";
 
 import { Icon } from "@/components/ui/icon";
-import { formatTravelMinutes, stayMinutes } from "@/lib/itinerary";
+import {
+  formatIncline,
+  formatTravelMinutes,
+  stayMinutes,
+} from "@/lib/itinerary";
 import { cn } from "@/lib/utils";
 import type { Item } from "@/types/itinerary";
 
@@ -45,6 +49,10 @@ export function PlaceItem({
   );
   const stay = stayMinutes(item.startTime, item.endTime);
   const stayLabel = stay ? formatTravelMinutes(stay) : null;
+  const inclineLabel = formatIncline(
+    item.inclinePenaltyMinutes,
+    item.elevationGainMeters,
+  );
   const notes = item.notes ?? [];
 
   return (
@@ -134,12 +142,20 @@ export function PlaceItem({
                   </span>
                 )}
               </div>
-              {stayLabel && (
-                <div className="mt-1">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2 py-0.5 text-[11.5px] font-semibold text-foreground/70">
-                    <Icon name="clock" size={11} className="shrink-0" />
-                    머무는 시간 {stayLabel}
-                  </span>
+              {(stayLabel || inclineLabel) && (
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  {stayLabel && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2 py-0.5 text-[11.5px] font-semibold text-foreground/70">
+                      <Icon name="clock" size={11} className="shrink-0" />
+                      머무는 시간 {stayLabel}
+                    </span>
+                  )}
+                  {inclineLabel && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-0.5 text-[11.5px] font-semibold text-orange-700">
+                      <Icon name="trending-up" size={11} className="shrink-0" />
+                      {inclineLabel}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

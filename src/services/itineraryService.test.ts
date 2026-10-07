@@ -104,6 +104,9 @@ describe("generateItinerary", () => {
           notes: ["개장 전 도착이라 09:00까지 대기가 필요합니다."],
           addedByAi: undefined,
           addedForRest: undefined,
+          // v3: 구버전 백엔드(원본 응답에 필드 없음) 호환 기본값.
+          elevationGainMeters: 0,
+          inclinePenaltyMinutes: 0,
         },
       ],
     },
@@ -224,6 +227,54 @@ describe("generateItinerary", () => {
       undefined,
       { headers: { Authorization: "Bearer access-1" } },
     );
+  });
+
+  it("v3: dayStartTimes 옵션을 요청 바디에 그대로 실어 보낸다", async () => {
+    mockPost.mockResolvedValueOnce({ data: rawServerResponse });
+    const options: ItineraryGenerateRequest = {
+      dayStartTimes: ["10:30", null],
+    };
+
+    await generateItinerary(options);
+
+    expect(mockPost).toHaveBeenCalledWith(
+      "/api/v1/itineraries/generate",
+      options,
+      { headers: undefined },
+    );
+  });
+
+  it("v3: 응답 스톱의 elevationGainMeters/inclinePenaltyMinutes를 그대로 반영한다", async () => {
+    // variants를 생략해 fallbackVariant가 data.days를 그대로 쓰게 한다 —
+    // variants가 있으면 최상위 days는 variants[0].days의 복제일 뿐이라 여기서
+    // 고친 값이 반영되지 않는다.
+    const responseWithIncline: RawItineraryGenerateResponse = {
+      title: rawServerResponse.title,
+      region: rawServerResponse.region,
+      travelDate: rawServerResponse.travelDate,
+      duration: rawServerResponse.duration,
+      adjustments: rawAdjustments,
+      days: [
+        {
+          ...rawDays[0],
+          items: [
+            {
+              ...rawDays[0].items[0],
+              elevationGainMeters: 120.5,
+              inclinePenaltyMinutes: 12,
+            },
+          ],
+        },
+      ],
+    };
+    mockPost.mockResolvedValueOnce({ data: responseWithIncline });
+
+    const result = await generateItinerary();
+
+    expect(result.days[0]?.items[0]).toMatchObject({
+      elevationGainMeters: 120.5,
+      inclinePenaltyMinutes: 12,
+    });
   });
 });
 

@@ -7,6 +7,7 @@ import type { ItineraryMapData } from "@/types/map";
 
 vi.mock("@/lib/kakaoMapLoader", () => ({
   loadKakaoMaps: () => Promise.resolve(),
+  onKakaoMapsLateReady: () => () => {},
 }));
 
 import { DayMapPanel } from "./DayMapPanel";

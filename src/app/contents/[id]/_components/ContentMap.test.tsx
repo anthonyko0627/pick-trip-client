@@ -11,6 +11,7 @@ import {
 const loadKakaoMaps = vi.fn(() => Promise.resolve());
 vi.mock("@/lib/kakaoMapLoader", () => ({
   loadKakaoMaps: () => loadKakaoMaps(),
+  onKakaoMapsLateReady: () => () => {},
 }));
 
 import { ContentMap } from "./ContentMap";

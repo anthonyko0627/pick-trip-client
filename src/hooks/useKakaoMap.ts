@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { loadKakaoMaps } from "@/lib/kakaoMapLoader";
+import { loadKakaoMaps, onKakaoMapsLateReady } from "@/lib/kakaoMapLoader";
 
 type KakaoMapStatus = "loading" | "ready" | "error";
 
@@ -13,15 +13,20 @@ export function useKakaoMap(): { status: KakaoMapStatus } {
 
   useEffect(() => {
     let cancelled = false;
+    const markReady = () => {
+      if (!cancelled) setStatus("ready");
+    };
+    // 느린 회선에서 로더의 상한을 넘겨 error 로 간 뒤에 SDK 초기화가 끝나면
+    // 다시 ready 로 돌린다. 재마운트 전까지 안내 문구에 머물지 않게 한다.
+    const unsubscribe = onKakaoMapsLateReady(markReady);
     loadKakaoMaps()
-      .then(() => {
-        if (!cancelled) setStatus("ready");
-      })
+      .then(markReady)
       .catch(() => {
         if (!cancelled) setStatus("error");
       });
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
 

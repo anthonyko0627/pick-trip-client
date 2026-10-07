@@ -47,6 +47,7 @@ vi.mock("@/hooks/useFavorites", () => ({
 const loadKakaoMaps = vi.fn(() => Promise.resolve());
 vi.mock("@/lib/kakaoMapLoader", () => ({
   loadKakaoMaps: () => loadKakaoMaps(),
+  onKakaoMapsLateReady: () => () => {},
 }));
 
 // 근처 콘텐츠는 useQuery(네트워크)에 의존한다 — 이 화면 테스트에서는 렌더만

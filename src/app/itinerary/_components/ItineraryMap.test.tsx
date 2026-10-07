@@ -11,6 +11,7 @@ import type { ItineraryMapDay } from "@/types/map";
 const loadKakaoMaps = vi.fn(() => Promise.resolve());
 vi.mock("@/lib/kakaoMapLoader", () => ({
   loadKakaoMaps: () => loadKakaoMaps(),
+  onKakaoMapsLateReady: () => () => {},
 }));
 
 import { ItineraryMap } from "./ItineraryMap";

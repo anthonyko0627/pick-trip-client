@@ -23,6 +23,7 @@ function content(id: string): Content {
 
 const STATIC_URLS = [
   "https://www.pick-trip.app/",
+  "https://www.pick-trip.app/account-deletion",
   "https://www.pick-trip.app/contents",
   "https://www.pick-trip.app/explore",
   "https://www.pick-trip.app/privacy",
